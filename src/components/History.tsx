@@ -3,21 +3,21 @@ import { performedServicesService } from '../services/performedServicesService';
 import { servicesService } from '../services/servicesService';
 import { productsService } from '../services/productsService';
 import { supabase } from '../services/supabaseClient';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Typography,
-  Box,
+    import {
+      Table,
+      TableBody,
+      TableCell,
+      TableContainer,
+      TableHead,
+      TableRow,
+      Paper,
+      Typography,
+      Box,
   Button,
   Modal,
   Chip,
   Stack
-} from '@mui/material';
+    } from '@mui/material';
 import { PerformedService } from '../types/performedServices';
 import { Service } from '../types/services';
 import { Product } from '../types/products';
@@ -36,7 +36,7 @@ export const History: React.FC = () => {
   const [selectedService, setSelectedService] = useState<ServiceWithDetails | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
+      useEffect(() => {
     loadAllData();
   }, []);
 
@@ -63,7 +63,7 @@ export const History: React.FC = () => {
       setServicesMap(sMap);
       setProductsMap(pMap);
       setServices(performedServices);
-    } catch (err) {
+          } catch (err) {
       console.error('Erro ao carregar dados:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
     } finally {
@@ -149,7 +149,7 @@ export const History: React.FC = () => {
               <Typography variant="subtitle1" sx={{ mt: 2 }}>Produtos:</Typography>
               {selectedService.products_sold.map((p, index) => {
                 const product = productsMap.get(p.product_id);
-                return (
+        return (
                   <Box key={index} sx={{ ml: 2, mb: 1 }}>
                     <Typography variant="body2">
                       {product?.name} - {p.quantity}x
@@ -181,28 +181,28 @@ export const History: React.FC = () => {
   if (loading) return <Typography>Carregando...</Typography>;
   if (error) return <Typography color="error">{error}</Typography>;
 
-  return (
-    <Box>
+      return (
+        <Box>
       <Typography variant="h6" gutterBottom>
-        Histórico de Serviços
-      </Typography>
-      <TableContainer component={Paper}>
+            Histórico de Serviços
+          </Typography>
+          <TableContainer component={Paper}>
         <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Data</TableCell>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Data</TableCell>
               <TableCell>Tipo</TableCell>
               <TableCell align="right">Valor Total</TableCell>
               <TableCell align="center">Detalhes</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
+                </TableRow>
+              </TableHead>
+              <TableBody>
             {services.map((service) => (
               <TableRow key={service.performed_id}>
                 <TableCell>
                   {new Date(service.created_at!).toLocaleDateString('pt-BR')}
                 </TableCell>
-                <TableCell>
+                    <TableCell>
                   <Chip 
                     label={getServiceType(service)}
                     color="primary"
@@ -221,15 +221,15 @@ export const History: React.FC = () => {
                   >
                     Detalhes
                   </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
       <ServiceDetailsModal />
-    </Box>
-  );
-};
+        </Box>
+      );
+    };
 
-export default History;
+    export default History;

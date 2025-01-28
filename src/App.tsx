@@ -93,25 +93,23 @@ function About() {
 
 function App() {
   const [session, setSession] = useState<boolean | null>(null);
-  const navigate = useNavigate();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkSession = async () => {
       try {
         setIsLoading(true);
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        
         if (!currentSession) {
           setSession(false);
-          navigate('/login');
+          setIsLoading(false);
           return;
         }
 
         setSession(true);
         const { data: user, error } = await supabase.auth.getUser();
-        
         if (error || !user?.user?.id) {
           console.error('Error fetching user:', error);
           return;
@@ -130,11 +128,15 @@ function App() {
 
         setUserRole(userData?.role || null);
 
-        // Lógica de redirecionamento baseada no papel do usuário
-        if (userData?.role === 'profissional') {
-          navigate('/professional-dashboard');
-        } else if (userData?.role === 'gestor' || userData?.role === 'admin') {
-          navigate('/manager-dashboard');
+        const currentPath = window.location.pathname;
+        const isPublicRoute = ['/login', '/signup', '/reset-password', '/reset-password/confirm', '/new-password'].includes(currentPath);
+        
+        if (isPublicRoute || currentPath === '/') {
+          if (userData?.role === 'professional') {
+            navigate('/professional-dashboard');
+          } else if (userData?.role === 'gestor' || userData?.role === 'admin') {
+            navigate('/manager-dashboard');
+          }
         }
       } catch (error) {
         console.error('Error in checkSession:', error);
@@ -144,40 +146,51 @@ function App() {
     };
 
     checkSession();
-  }, []); // Removido navigate do array de dependências para evitar loop
+  }, [navigate]);
 
   if (isLoading) {
-    return <div>Carregando...</div>; // Ou um componente de loading mais elaborado
+    return <div>Carregando...</div>;
   }
 
   return (
     <ErrorBoundary>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/login" element={
+          !session ? <LoginPage /> : 
+          userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
+          <Navigate to="/manager-dashboard" replace />
+        } />
+        <Route path="/signup" element={!session ? <SignUpPage /> : (
+          userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
+          <Navigate to="/manager-dashboard" replace />
+        )} />
         <Route path="/reset-password" element={<PasswordResetPage />} />
         <Route path="/reset-password/confirm" element={<ResetPasswordConfirmPage />} />
         <Route path="/new-password" element={<NewPasswordPage />} />
-        <Route path="/home" element={<Home />} />
-        <Route 
-          path="/professional-dashboard/*" 
-          element={
-            userRole === 'profissional' ? 
-              <ProfessionalDashboard /> : 
-              <Navigate to="/login" replace />
-          } 
-        />
-        <Route 
-          path="/manager-dashboard" 
-          element={
-            userRole === 'gestor' || userRole === 'admin' ? 
-              <ManagerDashboard /> : 
-              <Navigate to="/login" replace />
-          } 
-        />
-        <Route path="/products-dashboard" element={<ProductsDashboard />} />
+
+        <Route path="/" element={
+          !session ? <Navigate to="/login" replace /> :
+          userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
+          <Navigate to="/manager-dashboard" replace />
+        } />
+
+        <Route path="/professional-dashboard/*" element={
+          !session ? <Navigate to="/login" replace /> :
+          userRole === 'professional' ? <ProfessionalDashboard /> :
+          <Navigate to="/manager-dashboard" replace />
+        } />
+
+        <Route path="/manager-dashboard/*" element={
+          !session ? <Navigate to="/login" replace /> :
+          (userRole === 'gestor' || userRole === 'admin') ? <ManagerDashboard /> :
+          <Navigate to="/professional-dashboard" replace />
+        } />
+
+        <Route path="*" element={
+          !session ? <Navigate to="/login" replace /> :
+          userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
+          <Navigate to="/manager-dashboard" replace />
+        } />
       </Routes>
     </ErrorBoundary>
   );

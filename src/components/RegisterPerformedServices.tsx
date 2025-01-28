@@ -108,6 +108,9 @@ export const RegisterPerformedServices: React.FC = () => {
         value: product.value,
         quantity: productQuantity
       }]);
+      // Limpar os campos após adicionar
+      setSelectedProduct('');
+      setProductQuantity(1);
     }
   };
 
