@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
     import {
       TextField,
       Button,
@@ -29,9 +29,11 @@ import React, { useState } from 'react';
         setServices(newServices);
       };
 
+      type ServiceField = 'name' | 'value' | 'observations';
+
       const handleServiceChange = (
         index: number,
-        field: string,
+        field: ServiceField,
         value: string
       ) => {
         const newServices = [...services];
@@ -40,9 +42,9 @@ import React, { useState } from 'react';
         calculateTotal(newServices);
       };
 
-      const calculateTotal = (services: any) => {
+      const calculateTotal = (services: { name: string; value: string; observations: string }[]) => {
         let newTotal = 0;
-        services.forEach((service: any) => {
+        services.forEach((service: { name: string; value: string; observations: string }) => {
           const value = parseFloat(service.value);
           if (!isNaN(value)) {
             newTotal += value;

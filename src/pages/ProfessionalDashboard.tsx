@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import {
   Drawer,
@@ -22,10 +22,10 @@ import {
   Menu as MenuIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
-import RegisterPerformedServices from './RegisterPerformedServices';
-import History from './History';
-import Profile from './Profile';
-import LogoutButton from './LogoutButton';
+import RegisterPerformedServices from '../components/RegisterPerformedServices';
+import History from '../components/History';
+import Profile from '../components/Profile';
+import LogoutButton from '../components/LogoutButton';
 
 const drawerWidth = 240;
 

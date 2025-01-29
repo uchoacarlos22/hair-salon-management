@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
     import {
       Table,
       TableBody,
@@ -21,7 +21,7 @@ import React, { useState, useEffect } from 'react';
       role: string;
     }
 
-    const AdminPanel = () => {
+    const AdminDashboard = () => {
       const [users, setUsers] = useState<User[]>([]);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState<string | null>(null);
@@ -126,4 +126,4 @@ import React, { useState, useEffect } from 'react';
       );
     };
 
-    export default AdminPanel;
+    export default AdminDashboard;

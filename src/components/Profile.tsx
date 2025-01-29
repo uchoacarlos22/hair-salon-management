@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
     import {
       TextField,
       Button,
@@ -56,11 +56,16 @@ import React, { useState, useEffect } from 'react';
         fetchProfileData();
       }, []);
 
-      const handleProfilePictureUpload = async (event: any) => {
+      const handleProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         setLoading(true);
         setErrorMessage('');
         setSuccessMessage('');
-        const file = event.target.files[0];
+        const files = event.target.files;
+        if (!files) {
+          setLoading(false);
+          return;
+        }
+        const file = files[0];
 
         if (!file) {
           setLoading(false);

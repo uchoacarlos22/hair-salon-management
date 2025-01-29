@@ -85,16 +85,6 @@ export const History: React.FC = () => {
     }
   };
 
-  const formatServiceItem = (serviceItem: any) => {
-    const service = servicesMap.get(serviceItem.service_id);
-    return service ? `${serviceItem.quantity}x ${service.title}` : '';
-  };
-
-  const formatProductItem = (productItem: any) => {
-    const product = productsMap.get(productItem.product_id);
-    return product ? `${productItem.quantity}x ${product.name}` : '';
-  };
-
   const getServiceType = (service: ServiceWithDetails) => {
     if (service.service?.length > 0 && service.products_sold?.length > 0) {
       return 'Serviço e Produto';

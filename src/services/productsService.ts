@@ -1,15 +1,6 @@
 import { supabase } from './supabaseClient';
 import { Product } from '../types/products';
 
-    interface Product {
-      id: string;
-      name: string;
-      price: number;
-      stock: number;
-      created_at?: string;
-      updated_at?: string;
-    }
-
     // Função para criar um novo produto
     export async function createProduct(product: Product): Promise<Product> {
       try {
