@@ -10,6 +10,7 @@ import {
   TableRow, 
   Paper 
 } from '@mui/material';
+import LoadingBackdrop from './LoadingBackdrop';
 
 export const ServicesList: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -36,34 +37,37 @@ export const ServicesList: React.FC = () => {
   if (error) return <div>Erro: {error}</div>;
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Título</TableCell>
-            <TableCell>Descrição</TableCell>
-            <TableCell>Data/Hora</TableCell>
-            <TableCell align="right">Valor (R$)</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {services.map((service) => (
-            <TableRow key={service.service_id}>
-              <TableCell>{service.title}</TableCell>
-              <TableCell>{service.description}</TableCell>
-              <TableCell>
-                {new Date(service.date_time).toLocaleString('pt-BR')}
-              </TableCell>
-              <TableCell align="right">
-                {service.value.toLocaleString('pt-BR', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
-              </TableCell>
+    <>
+      <LoadingBackdrop open={loading} />
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Título</TableCell>
+              <TableCell>Descrição</TableCell>
+              <TableCell>Data/Hora</TableCell>
+              <TableCell align="right">Valor (R$)</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableHead>
+          <TableBody>
+            {services.map((service) => (
+              <TableRow key={service.service_id}>
+                <TableCell>{service.title}</TableCell>
+                <TableCell>{service.description}</TableCell>
+                <TableCell>
+                  {new Date(service.date_time).toLocaleString('pt-BR')}
+                </TableCell>
+                <TableCell align="right">
+                  {service.value.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                  })}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 }; 

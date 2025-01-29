@@ -12,6 +12,7 @@ import ProfessionalDashboard from './components/ProfessionalDashboard';
 import ManagerDashboard from './components/ManagerDashboard';
 import ProductsDashboard from './components/ProductsDashboard';
 import ErrorBoundary from './components/ErrorBoundary';
+import LoadingBackdrop from './components/LoadingBackdrop';
 
 interface TestData {
   id: string;
@@ -149,7 +150,51 @@ function App() {
   }, [navigate]);
 
   if (isLoading) {
-    return <div>Carregando...</div>;
+    return (
+      <>
+        <LoadingBackdrop open={true} />
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/login" element={
+              !session ? <LoginPage /> : 
+              userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
+              <Navigate to="/manager-dashboard" replace />
+            } />
+            <Route path="/signup" element={!session ? <SignUpPage /> : (
+              userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
+              <Navigate to="/manager-dashboard" replace />
+            )} />
+            <Route path="/reset-password" element={<PasswordResetPage />} />
+            <Route path="/reset-password/confirm" element={<ResetPasswordConfirmPage />} />
+            <Route path="/new-password" element={<NewPasswordPage />} />
+
+            <Route path="/" element={
+              !session ? <Navigate to="/login" replace /> :
+              userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
+              <Navigate to="/manager-dashboard" replace />
+            } />
+
+            <Route path="/professional-dashboard/*" element={
+              !session ? <Navigate to="/login" replace /> :
+              userRole === 'professional' ? <ProfessionalDashboard /> :
+              <Navigate to="/manager-dashboard" replace />
+            } />
+
+            <Route path="/manager-dashboard/*" element={
+              !session ? <Navigate to="/login" replace /> :
+              (userRole === 'gestor' || userRole === 'admin') ? <ManagerDashboard /> :
+              <Navigate to="/professional-dashboard" replace />
+            } />
+
+            <Route path="*" element={
+              !session ? <Navigate to="/login" replace /> :
+              userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
+              <Navigate to="/manager-dashboard" replace />
+            } />
+          </Routes>
+        </ErrorBoundary>
+      </>
+    );
   }
 
   return (

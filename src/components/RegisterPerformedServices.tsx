@@ -13,6 +13,8 @@ import {
   IconButton,
   Alert,
   Snackbar,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -23,6 +25,7 @@ import { productsService } from '../services/productsService';
 import { performedServicesService } from '../services/performedServicesService';
 import { supabase } from '../services/supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import LoadingBackdrop from './LoadingBackdrop';
 
 interface SelectedItem {
   id: string;
@@ -46,6 +49,9 @@ export const RegisterPerformedServices: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [loading, setLoading] = useState(false);
 
   const calculateTotal = useCallback(() => {
     const total = selectedItems.reduce((sum, item) => {
@@ -65,19 +71,25 @@ export const RegisterPerformedServices: React.FC = () => {
 
   const loadServices = async () => {
     try {
+      setLoading(true);
       const data = await servicesService.fetchServices();
       setServices(data);
     } catch (error) {
       console.error('Erro ao carregar serviços:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const loadProducts = async () => {
     try {
+      setLoading(true);
       const data = await productsService.fetchProducts();
       setProducts(data as SetStateAction<Product[]>);
     } catch (error) {
       console.error('Erro ao carregar produtos:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -184,226 +196,280 @@ export const RegisterPerformedServices: React.FC = () => {
   };
 
   return (
-    <Box component={Paper} sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-      <Typography variant="h6" gutterBottom>
-        Registro de Serviços Realizados
-      </Typography>
+    <>
+      <LoadingBackdrop open={loading} />
+      <Box component={Paper} sx={{ 
+        p: { xs: 1.5, sm: 3 }, 
+        maxWidth: '100%', 
+        mx: 'auto',
+        mt: { xs: 1, sm: 2 }
+      }}>
+        <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+          Registro de Serviços Realizados
+        </Typography>
 
-      <Grid container spacing={2}>
-        {/* Seleção de Serviços */}
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel>Selecione o serviço</InputLabel>
-              <Select
-                value={selectedService}
-                onChange={(e) => setSelectedService(e.target.value as string)}
-                label="Selecione o serviço"
-              >
-                {services.map((service) => (
-                  <MenuItem key={service.service_id} value={service.service_id}>
-                    {service.title} - R$ {service.value}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <TextField
-              type="number"
-              label="Qtd"
-              value={serviceQuantity}
-              onChange={(e) => setServiceQuantity(Number(e.target.value))}
-              sx={{ width: 100 }}
-              InputProps={{ inputProps: { min: 1 } }}
-            />
-
-            <IconButton
-              color="primary"
-              onClick={handleAddService}
-              sx={{ alignSelf: 'center' }}
-            >
-              <AddIcon />
-            </IconButton>
-          </Box>
-        </Grid>
-
-        {/* Seleção de Produtos */}
-        <Grid item xs={12}>
-          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel>Selecione o produto</InputLabel>
-              <Select
-                value={selectedProduct}
-                onChange={(e) => setSelectedProduct(e.target.value as string)}
-                label="Selecione o produto"
-              >
-                {products.map((product) => (
-                  <MenuItem key={product.product_id} value={product.product_id}>
-                    {product.name} - R$ {product.value}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <TextField
-              type="number"
-              label="Qtd"
-              value={productQuantity}
-              onChange={(e) => setProductQuantity(Number(e.target.value))}
-              sx={{ width: 100 }}
-              InputProps={{ inputProps: { min: 1 } }}
-            />
-
-            <IconButton
-              color="primary"
-              onClick={() => handleAddProduct(selectedProduct, productQuantity)}
-              sx={{ alignSelf: 'center' }}
-            >
-              <AddIcon />
-            </IconButton>
-          </Box>
-        </Grid>
-
-        {/* Lista de itens adicionados com cabeçalho */}
-        <Grid item xs={12}>
-          <Box sx={{ 
-            border: '1px solid #ccc', 
-            borderRadius: 1,
-            overflow: 'hidden'
-          }}>
-            {/* Cabeçalho da tabela */}
+        <Grid container spacing={{ xs: 1.5, sm: 2 }}>
+          {/* Seleção de Serviços */}
+          <Grid item xs={12}>
             <Box sx={{ 
               display: 'flex', 
-              bgcolor: '#f5f5f5', 
-              borderBottom: '1px solid #ccc',
-              p: 1
+              flexDirection: 'column',
+              gap: 2
             }}>
-              <Typography sx={{ flex: 1, fontWeight: 'bold' }}>
-                nome
-              </Typography>
+              <FormControl size={isMobile ? "small" : "medium"}>
+                <InputLabel>Selecione o serviço</InputLabel>
+                <Select
+                  value={selectedService}
+                  onChange={(e) => setSelectedService(e.target.value as string)}
+                  label="Selecione o serviço"
+                >
+                  {services.map((service) => (
+                    <MenuItem key={service.service_id} value={service.service_id}>
+                      {service.title} - R$ {service.value}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
               <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+                display: 'flex',
                 gap: 2,
-                minWidth: '200px'
+                alignItems: 'flex-start'
               }}>
-                <Typography sx={{ width: '70px', fontWeight: 'bold' }}>
-                  Qtd
-                </Typography>
-                <Typography sx={{ width: '100px', textAlign: 'right', fontWeight: 'bold' }}>
-                  valor
-                </Typography>
-                <Box sx={{ width: '40px' }} /> {/* Espaço para o botão de delete */}
+                <TextField
+                  type="number"
+                  label="Qtd"
+                  value={serviceQuantity}
+                  onChange={(e) => setServiceQuantity(Number(e.target.value))}
+                  size={isMobile ? "small" : "medium"}
+                  sx={{ width: '80px' }}
+                  InputProps={{ inputProps: { min: 1 } }}
+                />
+                <IconButton
+                  color="primary"
+                  onClick={handleAddService}
+                  size={isMobile ? "small" : "medium"}
+                >
+                  <AddIcon />
+                </IconButton>
               </Box>
             </Box>
+          </Grid>
 
-            {/* Lista de itens */}
-            <Box sx={{ p: 1, minHeight: '100px' }}>
-              {selectedItems.map((item, index) => (
-                <Box key={index} sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  mb: 1,
-                  '&:last-child': { mb: 0 }
-                }}>
-                  <Typography sx={{ flex: 1 }}>
-                    {item.title}
-                  </Typography>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 2,
-                    minWidth: '200px'
-                  }}>
-                    <TextField
-                      type="number"
-                      size="small"
-                      value={item.quantity}
-                      onChange={(e) => {
-                        const newItems = [...selectedItems];
-                        newItems[index] = {
-                          ...newItems[index],
-                          quantity: Number(e.target.value)
-                        };
-                        setSelectedItems(newItems);
-                      }}
-                      InputProps={{ 
-                        inputProps: { min: 1 },
-                        sx: { width: '70px' }
-                      }}
-                    />
-                    <Typography sx={{ width: '100px', textAlign: 'right' }}>
-                      R$ {(item.value * item.quantity).toFixed(2)}
-                    </Typography>
-                    <IconButton 
-                      color="error" 
-                      onClick={() => handleRemoveItem(index)}
-                      size="small"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </Box>
-              ))}
+          {/* Seleção de Produtos */}
+          <Grid item xs={12}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              gap: 2
+            }}>
+              <FormControl size={isMobile ? "small" : "medium"}>
+                <InputLabel>Selecione o produto</InputLabel>
+                <Select
+                  value={selectedProduct}
+                  onChange={(e) => setSelectedProduct(e.target.value as string)}
+                  label="Selecione o produto"
+                >
+                  {products.map((product) => (
+                    <MenuItem key={product.product_id} value={product.product_id}>
+                      {product.name} - R$ {product.value}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Box sx={{ 
+                display: 'flex',
+                gap: 2,
+                alignItems: 'flex-start'
+              }}>
+                <TextField
+                  type="number"
+                  label="Qtd"
+                  value={productQuantity}
+                  onChange={(e) => setProductQuantity(Number(e.target.value))}
+                  size={isMobile ? "small" : "medium"}
+                  sx={{ width: '80px' }}
+                  InputProps={{ inputProps: { min: 1 } }}
+                />
+                <IconButton
+                  color="primary"
+                  onClick={() => handleAddProduct(selectedProduct, productQuantity)}
+                  size={isMobile ? "small" : "medium"}
+                >
+                  <AddIcon />
+                </IconButton>
+              </Box>
             </Box>
-          </Box>
+          </Grid>
+
+          {/* Lista de itens */}
+          <Grid item xs={12}>
+            <Box sx={{ 
+              border: '1px solid #ccc', 
+              borderRadius: 1,
+              overflow: 'auto',
+              mt: 1
+            }}>
+              {/* Cabeçalho da tabela */}
+              <Box sx={{ 
+                display: 'flex', 
+                bgcolor: '#f5f5f5', 
+                borderBottom: '1px solid #ccc',
+                p: { xs: 1, sm: 1.5 },
+              }}>
+                <Typography sx={{ 
+                  flex: 1, 
+                  fontWeight: 'bold',
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }}>
+                  Nome
+                </Typography>
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: { xs: 1, sm: 2 },
+                  minWidth: 'auto'
+                }}>
+                  <Typography sx={{ 
+                    width: '50px', 
+                    fontWeight: 'bold',
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
+                    Qtd
+                  </Typography>
+                  <Typography sx={{ 
+                    width: '80px', 
+                    textAlign: 'right', 
+                    fontWeight: 'bold',
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  }}>
+                    Valor
+                  </Typography>
+                  <Box sx={{ width: '40px' }} />
+                </Box>
+              </Box>
+
+              {/* Lista de itens */}
+              <Box sx={{ p: { xs: 1, sm: 1.5 } }}>
+                {selectedItems.map((item, index) => (
+                  <Box key={index} sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    mb: 1,
+                    '&:last-child': { mb: 0 }
+                  }}>
+                    <Typography sx={{ 
+                      flex: 1,
+                      fontSize: { xs: '0.875rem', sm: '1rem' }
+                    }}>
+                      {item.title}
+                    </Typography>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: { xs: 1, sm: 2 }
+                    }}>
+                      <TextField
+                        type="number"
+                        size="small"
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const newItems = [...selectedItems];
+                          newItems[index] = {
+                            ...newItems[index],
+                            quantity: Number(e.target.value)
+                          };
+                          setSelectedItems(newItems);
+                        }}
+                        InputProps={{ 
+                          inputProps: { min: 1 },
+                          sx: { width: '50px' }
+                        }}
+                      />
+                      <Typography sx={{ 
+                        width: '80px', 
+                        textAlign: 'right',
+                        fontSize: { xs: '0.875rem', sm: '1rem' }
+                      }}>
+                        R$ {(item.value * item.quantity).toFixed(2)}
+                      </Typography>
+                      <IconButton 
+                        color="error" 
+                        onClick={() => handleRemoveItem(index)}
+                        size="small"
+                      >
+                        <DeleteIcon fontSize={isMobile ? "small" : "medium"} />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          </Grid>
+
+          {/* Observações */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Observações"
+              value={observations}
+              onChange={(e) => setObservations(e.target.value)}
+              size={isMobile ? "small" : "medium"}
+            />
+          </Grid>
+
+          {/* Total e Botão */}
+          <Grid item xs={12}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              gap: 2,
+              mt: 1
+            }}>
+              <Typography variant="h6" sx={{ 
+                fontSize: { xs: '1rem', sm: '1.25rem' },
+                textAlign: 'right'
+              }}>
+                Valor Total: R$ {totalValue.toFixed(2)}
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSubmit}
+                disabled={isSubmitting || selectedItems.length === 0}
+                size={isMobile ? "medium" : "large"}
+                fullWidth
+              >
+                {isSubmitting ? 'REGISTRANDO...' : 'REGISTRAR'}
+              </Button>
+            </Box>
+          </Grid>
         </Grid>
 
-        {/* Observações */}
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            multiline
-            rows={4}
-            label="Observações"
-            value={observations}
-            onChange={(e) => setObservations(e.target.value)}
-          />
-        </Grid>
+        {/* Snackbars */}
+        <Snackbar 
+          open={!!error} 
+          autoHideDuration={6000} 
+          onClose={() => setError(null)}
+        >
+          <Alert severity="error" onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        </Snackbar>
 
-        {/* Valor Total */}
-        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Typography variant="h6">
-            Valor Total: R$ {totalValue.toFixed(2)}
-          </Typography>
-        </Grid>
-
-        {/* Botão Registrar */}
-        <Grid item xs={12}>
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-            disabled={isSubmitting || selectedItems.length === 0}
-            sx={{ mt: 2 }}
-          >
-            {isSubmitting ? 'REGISTRANDO...' : 'REGISTRAR'}
-          </Button>
-        </Grid>
-      </Grid>
-
-      {/* Feedback para o usuário */}
-      <Snackbar 
-        open={!!error} 
-        autoHideDuration={6000} 
-        onClose={() => setError(null)}
-      >
-        <Alert severity="error" onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      </Snackbar>
-
-      <Snackbar 
-        open={success} 
-        autoHideDuration={6000} 
-        onClose={() => setSuccess(false)}
-      >
-        <Alert severity="success" onClose={() => setSuccess(false)}>
-          Serviço registrado com sucesso!
-        </Alert>
-      </Snackbar>
-    </Box>
+        <Snackbar 
+          open={success} 
+          autoHideDuration={6000} 
+          onClose={() => setSuccess(false)}
+        >
+          <Alert severity="success" onClose={() => setSuccess(false)}>
+            Serviço registrado com sucesso!
+          </Alert>
+        </Snackbar>
+      </Box>
+    </>
   );
 };
 

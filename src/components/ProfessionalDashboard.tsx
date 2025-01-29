@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Link,
-  useNavigate,
-} from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import {
   Drawer,
   List,
@@ -14,14 +8,19 @@ import {
   ListItemIcon,
   ListItemText,
   Box,
+  AppBar,
+  Toolbar,
   IconButton,
+  Typography,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import {
   PlaylistAddCheck as PlaylistAddCheckIcon,
   History as HistoryIcon,
   Person as PersonIcon,
-  Logout as LogoutIcon,
   Menu as MenuIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import RegisterPerformedServices from './RegisterPerformedServices';
 import History from './History';
@@ -31,18 +30,39 @@ import LogoutButton from './LogoutButton';
 const drawerWidth = 240;
 
 const ProfessionalDashboard = () => {
-  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
   const drawer = (
-    <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
+    <Box sx={{ mt: isMobile ? 8 : 0 }}>
+      {isMobile && (
+        <Box sx={{ 
+          position: 'absolute',
+          top: 8,
+          right: 8,
+          zIndex: 1
+        }}>
+          <IconButton 
+            onClick={handleDrawerToggle}
+            sx={{ color: 'text.secondary' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      )}
+      
       <List>
         <ListItem disablePadding>
-          <ListItemButton component={Link} to="/professional-dashboard/register-service">
+          <ListItemButton 
+            component={Link} 
+            to="/professional-dashboard/register-service"
+            onClick={() => isMobile && handleDrawerToggle()}
+          >
             <ListItemIcon>
               <PlaylistAddCheckIcon />
             </ListItemIcon>
@@ -50,7 +70,11 @@ const ProfessionalDashboard = () => {
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton component={Link} to="/professional-dashboard/history">
+          <ListItemButton 
+            component={Link} 
+            to="/professional-dashboard/history"
+            onClick={() => isMobile && handleDrawerToggle()}
+          >
             <ListItemIcon>
               <HistoryIcon />
             </ListItemIcon>
@@ -58,7 +82,11 @@ const ProfessionalDashboard = () => {
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton component={Link} to="/professional-dashboard/profile">
+          <ListItemButton 
+            component={Link} 
+            to="/professional-dashboard/profile"
+            onClick={() => isMobile && handleDrawerToggle()}
+          >
             <ListItemIcon>
               <PersonIcon />
             </ListItemIcon>
@@ -72,6 +100,29 @@ const ProfessionalDashboard = () => {
 
   return (
     <Box sx={{ display: 'flex' }}>
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { sm: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            Dashboard Profissional
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
@@ -81,7 +132,7 @@ const ProfessionalDashboard = () => {
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true,
+            keepMounted: true, // Melhor desempenho em mobile
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
@@ -107,12 +158,14 @@ const ProfessionalDashboard = () => {
           {drawer}
         </Drawer>
       </Box>
+
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: 2,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
+          mt: 4, // Espaço para o AppBar
         }}
       >
         <Routes>
