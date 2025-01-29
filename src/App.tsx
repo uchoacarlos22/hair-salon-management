@@ -93,26 +93,32 @@ function About() {
 }
 
 function App() {
-  const [session, setSession] = useState<boolean | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] = useState<boolean>(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const checkSession = async () => {
       try {
         setIsLoading(true);
         const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
         if (!currentSession) {
           setSession(false);
+          setUserRole(null);
           setIsLoading(false);
           return;
         }
 
         setSession(true);
         const { data: user, error } = await supabase.auth.getUser();
+        
         if (error || !user?.user?.id) {
           console.error('Error fetching user:', error);
+          setSession(false);
+          setUserRole(null);
+          setIsLoading(false);
           return;
         }
 
@@ -124,23 +130,30 @@ function App() {
 
         if (userError) {
           console.error('Error fetching user role:', userError);
+          setSession(false);
+          setUserRole(null);
+          setIsLoading(false);
           return;
         }
 
-        setUserRole(userData?.role || null);
+        const role = userData?.role || null;
+        setUserRole(role);
 
         const currentPath = window.location.pathname;
         const isPublicRoute = ['/login', '/signup', '/reset-password', '/reset-password/confirm', '/new-password'].includes(currentPath);
-        
-        if (isPublicRoute || currentPath === '/') {
-          if (userData?.role === 'professional') {
+
+        if (!isPublicRoute) {
+          if (role === 'professional' && !currentPath.includes('/professional-dashboard')) {
             navigate('/professional-dashboard');
-          } else if (userData?.role === 'gestor' || userData?.role === 'admin') {
+          } else if ((role === 'gestor' || role === 'admin') && !currentPath.includes('/manager-dashboard')) {
             navigate('/manager-dashboard');
           }
         }
+
       } catch (error) {
         console.error('Error in checkSession:', error);
+        setSession(false);
+        setUserRole(null);
       } finally {
         setIsLoading(false);
       }
@@ -149,62 +162,33 @@ function App() {
     checkSession();
   }, [navigate]);
 
+  const ProtectedProfessionalRoute = ({ children }: { children: React.ReactNode }) => {
+    if (!session) return <Navigate to="/login" replace />;
+    if (userRole !== 'professional') return <Navigate to="/manager-dashboard" replace />;
+    return <>{children}</>;
+  };
+
+  const ProtectedManagerRoute = ({ children }: { children: React.ReactNode }) => {
+    if (!session) return <Navigate to="/login" replace />;
+    if (userRole !== 'gestor' && userRole !== 'admin') return <Navigate to="/professional-dashboard" replace />;
+    return <>{children}</>;
+  };
+
   if (isLoading) {
-    return (
-      <>
-        <LoadingBackdrop open={true} />
-        <ErrorBoundary>
-          <Routes>
-            <Route path="/login" element={
-              !session ? <LoginPage /> : 
-              userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
-              <Navigate to="/manager-dashboard" replace />
-            } />
-            <Route path="/signup" element={!session ? <SignUpPage /> : (
-              userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
-              <Navigate to="/manager-dashboard" replace />
-            )} />
-            <Route path="/reset-password" element={<PasswordResetPage />} />
-            <Route path="/reset-password/confirm" element={<ResetPasswordConfirmPage />} />
-            <Route path="/new-password" element={<NewPasswordPage />} />
-
-            <Route path="/" element={
-              !session ? <Navigate to="/login" replace /> :
-              userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
-              <Navigate to="/manager-dashboard" replace />
-            } />
-
-            <Route path="/professional-dashboard/*" element={
-              !session ? <Navigate to="/login" replace /> :
-              userRole === 'professional' ? <ProfessionalDashboard /> :
-              <Navigate to="/manager-dashboard" replace />
-            } />
-
-            <Route path="/manager-dashboard/*" element={
-              !session ? <Navigate to="/login" replace /> :
-              (userRole === 'gestor' || userRole === 'admin') ? <ManagerDashboard /> :
-              <Navigate to="/professional-dashboard" replace />
-            } />
-
-            <Route path="*" element={
-              !session ? <Navigate to="/login" replace /> :
-              userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
-              <Navigate to="/manager-dashboard" replace />
-            } />
-          </Routes>
-        </ErrorBoundary>
-      </>
-    );
+    return <LoadingBackdrop open={true} />;
   }
 
   return (
     <ErrorBoundary>
       <Routes>
         <Route path="/login" element={
-          !session ? <LoginPage /> : 
-          userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
-          <Navigate to="/manager-dashboard" replace />
+          session ? (
+            userRole === 'professional' ? 
+              <Navigate to="/professional-dashboard" replace /> : 
+              <Navigate to="/manager-dashboard" replace />
+          ) : <LoginPage />
         } />
+
         <Route path="/signup" element={!session ? <SignUpPage /> : (
           userRole === 'professional' ? <Navigate to="/professional-dashboard" replace /> :
           <Navigate to="/manager-dashboard" replace />
@@ -220,15 +204,15 @@ function App() {
         } />
 
         <Route path="/professional-dashboard/*" element={
-          !session ? <Navigate to="/login" replace /> :
-          userRole === 'professional' ? <ProfessionalDashboard /> :
-          <Navigate to="/manager-dashboard" replace />
+          <ProtectedProfessionalRoute>
+            <ProfessionalDashboard />
+          </ProtectedProfessionalRoute>
         } />
 
         <Route path="/manager-dashboard/*" element={
-          !session ? <Navigate to="/login" replace /> :
-          (userRole === 'gestor' || userRole === 'admin') ? <ManagerDashboard /> :
-          <Navigate to="/professional-dashboard" replace />
+          <ProtectedManagerRoute>
+            <ManagerDashboard />
+          </ProtectedManagerRoute>
         } />
 
         <Route path="*" element={

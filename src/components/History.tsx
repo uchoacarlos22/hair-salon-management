@@ -3,7 +3,7 @@ import { performedServicesService } from '../services/performedServicesService';
 import { servicesService } from '../services/servicesService';
 import { productsService } from '../services/productsService';
 import { supabase } from '../services/supabaseClient';
-import {
+    import {
   Box,
   Typography,
   Button,
@@ -11,12 +11,12 @@ import {
   Chip,
   useTheme,
   useMediaQuery,
-  Paper,
+      Paper,
   IconButton,
   TablePagination,
   Backdrop,
   CircularProgress,
-} from '@mui/material';
+    } from '@mui/material';
 import { PerformedService } from '../types/performedServices';
 import { Service } from '../types/services';
 import { Product } from '../types/products';
@@ -46,7 +46,7 @@ export const History: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(5);
 
-  useEffect(() => {
+      useEffect(() => {
     loadAllData();
   }, []);
 
@@ -77,7 +77,7 @@ export const History: React.FC = () => {
       setServicesMap(sMap);
       setProductsMap(pMap);
       setServices(performedServices);
-    } catch (err) {
+          } catch (err) {
       console.error('Erro ao carregar dados:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
     } finally {
@@ -123,7 +123,7 @@ export const History: React.FC = () => {
 
   if (error) return <Typography color="error">{error}</Typography>;
 
-  return (
+      return (
     <>
       {/* Loading Backdrop */}
       <Backdrop
@@ -164,8 +164,8 @@ export const History: React.FC = () => {
             px: 1,
           }}
         >
-          Histórico de Serviços
-        </Typography>
+            Histórico de Serviços
+          </Typography>
 
         {/* Lista de Serviços */}
         <Box
@@ -311,7 +311,7 @@ export const History: React.FC = () => {
           <TablePagination
             component="div"
             count={services.length}
-            page={page}
+              page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[5]} // Fixado em 5 itens por página
@@ -522,9 +522,9 @@ export const History: React.FC = () => {
             )}
           </Box>
         </Modal>
-      </Box>
+        </Box>
     </>
-  );
-};
+      );
+    };
 
-export default History;
+    export default History;
