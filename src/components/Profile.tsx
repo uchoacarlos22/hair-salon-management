@@ -26,7 +26,7 @@ import { useState, useEffect } from 'react';
           setLoading(true);
           try {
             const { data: user } = await supabase.auth.getUser();
-            if (!user?.user?.id) {
+            if (!user.user?.id) {
               setErrorMessage('Usuário não autenticado.');
               return;
             }

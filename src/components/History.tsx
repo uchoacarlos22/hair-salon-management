@@ -311,13 +311,6 @@ export const History: React.FC = () => {
             labelRowsPerPage="" // Remove o texto "Linhas por página"
             sx={{
               borderTop: '1px solid #eee',
-              '.MuiTablePagination-select': {
-                // Esconde o select de itens por página
-                display: 'none',
-              },
-              '.MuiTablePagination-selectLabel': {
-                display: 'none',
-              },
             }}
           />
         </Box>

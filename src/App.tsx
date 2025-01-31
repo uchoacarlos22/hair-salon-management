@@ -92,7 +92,7 @@ function App() {
           ) {
             navigate('/professional-dashboard');
           } else if (
-            (role === 'gestor' || role === 'admin') &&
+            (role === 'manager' || role === 'admin') &&
             !currentPath.includes('/manager-dashboard')
           ) {
             navigate('/manager-dashboard');
@@ -127,7 +127,7 @@ function App() {
     children: React.ReactNode;
   }) => {
     if (!session) return <Navigate to="/login" replace />;
-    if (userRole !== 'gestor' && userRole !== 'admin')
+    if (userRole !== 'manager' && userRole !== 'admin')
       return <Navigate to="/professional-dashboard" replace />;
     return <>{children}</>;
   };
