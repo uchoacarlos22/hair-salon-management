@@ -1,37 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Service } from '../types/services';
-import { servicesService } from '../services/servicesService';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper 
-} from '@mui/material';
+// src/components/ServicesList.tsx
+import React from 'react';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import LoadingBackdrop from './LoadingBackdrop';
+import { useServicesList } from '../hooks/useServicesList';
 
 export const ServicesList: React.FC = () => {
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadServices();
-  }, []);
-
-  const loadServices = async () => {
-    try {
-      setLoading(true);
-      const data = await servicesService.fetchServices();
-      setServices(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar serviços');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { services, loading, error } = useServicesList();
 
   if (loading) return <div>Carregando...</div>;
   if (error) return <div>Erro: {error}</div>;
@@ -52,7 +26,7 @@ export const ServicesList: React.FC = () => {
           <TableBody>
             {services.map((service) => (
               <TableRow key={service.service_id}>
-                <TableCell>{service.title}</TableCell>
+                <TableCell>{service.name}</TableCell>
                 <TableCell>{service.description}</TableCell>
                 <TableCell>
                   {new Date(service.date_time).toLocaleString('pt-BR')}
@@ -60,7 +34,7 @@ export const ServicesList: React.FC = () => {
                 <TableCell align="right">
                   {service.value.toLocaleString('pt-BR', {
                     minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
+                    maximumFractionDigits: 2,
                   })}
                 </TableCell>
               </TableRow>
@@ -70,4 +44,6 @@ export const ServicesList: React.FC = () => {
       </TableContainer>
     </>
   );
-}; 
+};
+
+export default ServicesList;

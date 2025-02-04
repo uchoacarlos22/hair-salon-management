@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// src/components/ProfessionalDashboard.tsx
+import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import {
   Drawer,
@@ -26,40 +27,35 @@ import RegisterPerformedServices from '../components/RegisterPerformedServices';
 import History from '../components/History';
 import Profile from '../components/Profile';
 import LogoutButton from '../components/LogoutButton';
+import { useDrawerToggle } from '../hooks/useDrawerToggle';
 
 const drawerWidth = 240;
 
 const ProfessionalDashboard = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  const { mobileOpen, handleDrawerToggle } = useDrawerToggle();
 
   const drawer = (
     <Box sx={{ mt: isMobile ? 8 : 0 }}>
       {isMobile && (
-        <Box sx={{ 
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          zIndex: 1
-        }}>
-          <IconButton 
-            onClick={handleDrawerToggle}
-            sx={{ color: 'text.secondary' }}
-          >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 1,
+          }}
+        >
+          <IconButton onClick={handleDrawerToggle} sx={{ color: 'text.secondary' }}>
             <CloseIcon />
           </IconButton>
         </Box>
       )}
-      
       <List>
         <ListItem disablePadding>
-          <ListItemButton 
-            component={Link} 
+          <ListItemButton
+            component={Link}
             to="/professional-dashboard/register-service"
             onClick={() => isMobile && handleDrawerToggle()}
           >
@@ -70,8 +66,8 @@ const ProfessionalDashboard = () => {
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton 
-            component={Link} 
+          <ListItemButton
+            component={Link}
             to="/professional-dashboard/history"
             onClick={() => isMobile && handleDrawerToggle()}
           >
@@ -82,8 +78,8 @@ const ProfessionalDashboard = () => {
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
-          <ListItemButton 
-            component={Link} 
+          <ListItemButton
+            component={Link}
             to="/professional-dashboard/profile"
             onClick={() => isMobile && handleDrawerToggle()}
           >
@@ -127,6 +123,7 @@ const ProfessionalDashboard = () => {
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
+        {/* Drawer para dispositivos móveis */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -144,6 +141,7 @@ const ProfessionalDashboard = () => {
         >
           {drawer}
         </Drawer>
+        {/* Drawer permanente para telas maiores */}
         <Drawer
           variant="permanent"
           sx={{
@@ -169,7 +167,10 @@ const ProfessionalDashboard = () => {
         }}
       >
         <Routes>
-          <Route path="/register-service" element={<RegisterPerformedServices />} />
+          <Route
+            path="/register-service"
+            element={<RegisterPerformedServices />}
+          />
           <Route path="/history" element={<History />} />
           <Route path="/profile" element={<Profile />} />
         </Routes>

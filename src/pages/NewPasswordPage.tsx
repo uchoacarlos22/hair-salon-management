@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import {
   TextField,
   Button,
@@ -8,100 +7,22 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../services/supabaseClient';
+import { useNewPassword } from '../hooks/useNewPassword';
 
 const NewPasswordPage = () => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-    const [extractedToken, setExtractedToken] = useState<string | null>(null);
-    const [passwordMatchError, setPasswordMatchError] = useState('');
-    const [passwordLengthError, setPasswordLengthError] = useState('');
-
-    useEffect(() => {
-        if (window.location.hash) {
-            const hash = window.location.hash.substring(1);
-            const urlParams = new URLSearchParams(hash);
-            const tokenFromHash = urlParams.get('access_token');
-            setExtractedToken(tokenFromHash);
-            if (!tokenFromHash) {
-                setError('Token de redefinição de senha inválido.');
-            }
-        } else {
-            setError('Token de redefinição de senha inválido.');
-        }
-    }, []);
-
-    const validatePassword = (password: string) => {
-        if (password.length < 6) {
-            setPasswordLengthError('A senha deve ter pelo menos 6 caracteres.');
-            return false;
-        }
-        setPasswordLengthError('');
-        return true;
-    };
-
-    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNewPassword(e.target.value);
-        validatePassword(e.target.value);
-    };
-
-    const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setConfirmNewPassword(e.target.value);
-    };
-
-    useEffect(() => {
-        if (newPassword && confirmNewPassword && newPassword !== confirmNewPassword) {
-            setPasswordMatchError('As senhas devem coincidir.');
-        } else {
-            setPasswordMatchError('');
-        }
-    }, [newPassword, confirmNewPassword]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage('');
-    setError('');
-    setLoading(true);
-
-    if (!newPassword || !confirmNewPassword) {
-      setError('Por favor, preencha todos os campos.');
-      setLoading(false);
-      return;
-    }
-
-    if (newPassword !== confirmNewPassword) {
-        setError('As senhas não coincidem.');
-        setLoading(false);
-        return;
-    }
-
-    if (!validatePassword(newPassword)) {
-        setLoading(false);
-        return;
-    }
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (error) {
-        setError(`Erro ao redefinir senha: ${error.message}`);
-      } else {
-        setMessage('Sua senha foi redefinida com sucesso. Você pode fazer login novamente.');
-        setNewPassword('');
-        setConfirmNewPassword('');
-      }
-    } catch (err) {
-      setError('Ocorreu um erro ao tentar redefinir a senha.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    newPassword,
+    confirmNewPassword,
+    message,
+    error,
+    loading,
+    passwordMatchError,
+    passwordLengthError,
+    handlePasswordChange,
+    handleConfirmPasswordChange,
+    handleSubmit,
+  } = useNewPassword();
 
   return (
     <Box
@@ -135,14 +56,14 @@ const NewPasswordPage = () => {
           label="Nova Senha"
           type="password"
           value={newPassword}
-          onChange={handlePasswordChange}
+          onChange={(e) => handlePasswordChange(e.target.value)}
           required
         />
         <TextField
           label="Confirmar Nova Senha"
           type="password"
           value={confirmNewPassword}
-          onChange={handleConfirmPasswordChange}
+          onChange={(e) => handleConfirmPasswordChange(e.target.value)}
           required
         />
         <Button
@@ -154,13 +75,9 @@ const NewPasswordPage = () => {
           {loading ? <CircularProgress size={24} color="inherit" /> : 'Redefinir Senha'}
         </Button>
         {message && (
-            <Button
-                variant="contained"
-                color="primary"
-                onClick={() => navigate('/login')}
-            >
-                Voltar ao Login
-            </Button>
+          <Button variant="contained" color="primary" onClick={() => navigate('/login')}>
+            Voltar ao Login
+          </Button>
         )}
       </Box>
     </Box>

@@ -1,122 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { userService } from '../services/userService';
-import { supabase } from '../services/supabaseClient';
-import { 
-  Alert, 
-  IconButton, 
-  Avatar, 
-  Box, 
-  TextField, 
+// src/components/UserProfile.tsx
+import React from 'react';
+import {
+  Alert,
+  IconButton,
+  Avatar,
+  Box,
+  TextField,
   Button,
-  CircularProgress
+  CircularProgress,
 } from '@mui/material';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
-
-interface UserData {
-  user_id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  profile_pictures?: string;
-}
+import { useUserProfile } from '../hooks/useUserProfile';
 
 export const UserProfile: React.FC = () => {
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-
-  useEffect(() => {
-    loadUserProfile();
-  }, []);
-
-  const loadUserProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const photoUrl = await userService.getProfilePhoto(user.id);
-        setAvatarUrl(photoUrl);
-        
-        const { data, error } = await supabase
-          .from('users_table')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-          
-        if (error) throw error;
-        setUserData(data);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
-    }
-  };
-
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files || event.target.files.length === 0) {
-      return;
-    }
-
-    const file = event.target.files[0];
-    
-    // Validar tipo de arquivo
-    if (!file.type.startsWith('image/')) {
-      setError('Por favor, selecione uma imagem válida');
-      return;
-    }
-
-    // Validar tamanho (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('A imagem deve ter menos de 5MB');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      const url = await userService.uploadProfilePhoto(file);
-      setAvatarUrl(url);
-      setSuccess(true);
-    } catch (error) {
-      console.error('Erro no upload:', error);
-      setError('Erro ao fazer upload da foto: ' + (error as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async () => {
-    try {
-      if (!userData) return;
-
-      const { error } = await supabase
-        .from('users_table')
-        .update({
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone,
-          address: userData.address
-        })
-        .eq('user_id', userData.user_id);
-
-      if (error) throw error;
-      setSuccess(true);
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Erro ao salvar:', error);
-      setError('Erro ao salvar alterações: ' + (error as Error).message);
-    }
-  };
+  const {
+    error,
+    loading,
+    success,
+    avatarUrl,
+    userData,
+    isEditing,
+    setIsEditing,
+    setUserData,
+    handlePhotoUpload,
+    handleSave,
+  } = useUserProfile();
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
       <Box sx={{ position: 'relative' }}>
-        <Avatar
-          src={avatarUrl || undefined}
-          sx={{ width: 100, height: 100 }}
-        />
+        <Avatar src={avatarUrl || undefined} sx={{ width: 100, height: 100 }} />
         <input
           accept="image/*"
           style={{ display: 'none' }}
@@ -135,7 +48,7 @@ export const UserProfile: React.FC = () => {
               bottom: -10,
               right: -10,
               backgroundColor: 'white',
-              '&:hover': { backgroundColor: '#f5f5f5' }
+              '&:hover': { backgroundColor: '#f5f5f5' },
             }}
           >
             {loading ? <CircularProgress size={24} /> : <PhotoCamera />}
@@ -144,13 +57,13 @@ export const UserProfile: React.FC = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" onClose={() => setError(null)}>
+        <Alert severity="error" onClose={() => {}}>
           {error}
         </Alert>
       )}
-      
+
       {success && (
-        <Alert severity="success" onClose={() => setSuccess(false)}>
+        <Alert severity="success" onClose={() => {}}>
           Foto atualizada com sucesso!
         </Alert>
       )}
@@ -189,27 +102,18 @@ export const UserProfile: React.FC = () => {
             margin="normal"
             disabled={!isEditing}
           />
-          
+
           <Box sx={{ mt: 2, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             {!isEditing ? (
-              <Button 
-                variant="contained" 
-                onClick={() => setIsEditing(true)}
-              >
+              <Button variant="contained" onClick={() => setIsEditing(true)}>
                 Editar
               </Button>
             ) : (
               <>
-                <Button 
-                  variant="outlined" 
-                  onClick={() => setIsEditing(false)}
-                >
+                <Button variant="outlined" onClick={() => setIsEditing(false)}>
                   Cancelar
                 </Button>
-                <Button 
-                  variant="contained" 
-                  onClick={handleSave}
-                >
+                <Button variant="contained" onClick={handleSave}>
                   Salvar
                 </Button>
               </>
@@ -221,4 +125,4 @@ export const UserProfile: React.FC = () => {
   );
 };
 
-export default UserProfile; 
+export default UserProfile;

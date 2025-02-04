@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// src/components/ManagerDashboard.tsx
+import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import {
   Drawer,
@@ -22,28 +23,27 @@ import {
 } from '@mui/icons-material';
 import LogoutButton from '../components/LogoutButton';
 import ProfessionalsManagement from '../components/ProfessionalsManagement';
+import { useDrawerToggle } from '../hooks/useDrawerToggle';
 
 const drawerWidth = 240;
 
 const ManagerDashboard = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  const { mobileOpen, handleDrawerToggle } = useDrawerToggle();
 
   const drawer = (
     <Box sx={{ mt: isMobile ? 8 : 0 }}>
       {isMobile && (
-        <Box sx={{ 
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          zIndex: 1
-        }}>
-          <IconButton 
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 1,
+          }}
+        >
+          <IconButton
             onClick={handleDrawerToggle}
             sx={{ color: 'text.secondary' }}
           >
@@ -51,11 +51,10 @@ const ManagerDashboard = () => {
           </IconButton>
         </Box>
       )}
-      
       <List>
         <ListItem disablePadding>
-          <ListItemButton 
-            component={Link} 
+          <ListItemButton
+            component={Link}
             to="/manager-dashboard/professionals-management"
             onClick={() => isMobile && handleDrawerToggle()}
           >
@@ -65,30 +64,7 @@ const ManagerDashboard = () => {
             <ListItemText primary="Gestão de Colaboradores" />
           </ListItemButton>
         </ListItem>
-        {/* <ListItem disablePadding>
-          <ListItemButton 
-            component={Link} 
-            to="/manager-dashboard/history"
-            onClick={() => isMobile && handleDrawerToggle()}
-          >
-            <ListItemIcon>
-              <HistoryIcon />
-            </ListItemIcon>
-            <ListItemText primary="Histórico" />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton 
-            component={Link} 
-            to="/manager-dashboard/profile"
-            onClick={() => isMobile && handleDrawerToggle()}
-          >
-            <ListItemIcon>
-              <PersonIcon />
-            </ListItemIcon>
-            <ListItemText primary="Meus Dados" />
-          </ListItemButton>
-        </ListItem> */}
+        {/* Outras opções de menu podem ser adicionadas aqui */}
         <LogoutButton />
       </List>
     </Box>
@@ -123,12 +99,13 @@ const ManagerDashboard = () => {
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
+        {/* Drawer para dispositivos móveis */}
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Melhor desempenho em mobile
+            keepMounted: true, // Melhora o desempenho em mobile
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
@@ -140,6 +117,7 @@ const ManagerDashboard = () => {
         >
           {drawer}
         </Drawer>
+        {/* Drawer permanente para telas maiores */}
         <Drawer
           variant="permanent"
           sx={{
@@ -165,7 +143,11 @@ const ManagerDashboard = () => {
         }}
       >
         <Routes>
-          <Route path="/professionals-management" element={<ProfessionalsManagement />} />
+          <Route
+            path="/professionals-management"
+            element={<ProfessionalsManagement />}
+          />
+          {/* Outras rotas do dashboard podem ser adicionadas aqui */}
         </Routes>
       </Box>
     </Box>

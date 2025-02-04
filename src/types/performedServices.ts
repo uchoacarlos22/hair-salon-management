@@ -1,11 +1,13 @@
 interface ServiceItem {
   service_id: string;
+  name: string;
   quantity: number;
   value: number;
 }
 
 interface ProductItem {
   product_id: string;
+  name: string;
   quantity: number;
   value: number;
 }
@@ -19,4 +21,4 @@ export interface PerformedService {
   data: string;
   total: number;
   created_at?: string;
-} 
+}

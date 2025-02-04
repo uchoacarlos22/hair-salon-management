@@ -30,7 +30,7 @@ import LoadingBackdrop from './LoadingBackdrop';
 interface SelectedItem {
   id: string;
   type: 'service' | 'product';
-  title: string;
+  name: string;
   value: number;
   quantity: number;
 }
@@ -55,7 +55,7 @@ export const RegisterPerformedServices: React.FC = () => {
 
   const calculateTotal = useCallback(() => {
     const total = selectedItems.reduce((sum, item) => {
-      return sum + (item.value * item.quantity);
+      return sum + item.value * item.quantity;
     }, 0);
     setTotalValue(total);
   }, [selectedItems]);
@@ -95,31 +95,37 @@ export const RegisterPerformedServices: React.FC = () => {
 
   const handleAddService = () => {
     if (!selectedService) return;
-    
-    const service = services.find(s => s.service_id === selectedService);
+
+    const service = services.find((s) => s.service_id === selectedService);
     if (service) {
-      setSelectedItems([...selectedItems, {
-        id: service.service_id,
-        type: 'service',
-        title: service.title,
-        value: service.value,
-        quantity: serviceQuantity
-      }]);
+      setSelectedItems([
+        ...selectedItems,
+        {
+          id: service.service_id,
+          type: 'service',
+          name: service.name,
+          value: service.value,
+          quantity: serviceQuantity,
+        },
+      ]);
       setSelectedService('');
       setServiceQuantity(1);
     }
   };
 
   const handleAddProduct = (productId: string, productQuantity: number) => {
-    const product = products.find(p => p.product_id === productId);
+    const product = products.find((p) => p.product_id === productId);
     if (product) {
-      setSelectedItems(prev => [...prev, {
-        id: product.product_id,
-        type: 'product',
-        title: product.name,
-        value: product.value,
-        quantity: productQuantity
-      }]);
+      setSelectedItems((prev) => [
+        ...prev,
+        {
+          id: product.product_id,
+          type: 'product',
+          name: product.name,
+          value: product.value,
+          quantity: productQuantity,
+        },
+      ]);
       // Limpar os campos após adicionar
       setSelectedProduct('');
       setProductQuantity(1);
@@ -137,27 +143,31 @@ export const RegisterPerformedServices: React.FC = () => {
       setError(null);
 
       // Buscar o usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         throw new Error('Usuário não autenticado');
       }
 
       // Separar serviços e produtos
       const services = selectedItems
-        .filter(item => item.type === 'service')
-        .map(item => ({
+        .filter((item) => item.type === 'service')
+        .map((item) => ({
           service_id: item.id,
+          name: item.name,
           quantity: item.quantity,
-          value: item.value
+          value: item.value,
         }));
 
       const products = selectedItems
-        .filter(item => item.type === 'product')
-        .map(item => ({
+        .filter((item) => item.type === 'product')
+        .map((item) => ({
           product_id: item.id,
+          name: item.name,
           quantity: item.quantity,
-          value: item.value
+          value: item.value,
         }));
 
       const performedService = {
@@ -166,25 +176,26 @@ export const RegisterPerformedServices: React.FC = () => {
         products_sold: products,
         observations,
         data: new Date().toISOString(),
-        total: totalValue
+        total: totalValue,
       };
 
       await performedServicesService.createPerformedService(performedService);
-      
+
       setSuccess(true);
       // Limpar o formulário
       setSelectedItems([]);
       setObservations('');
       setTotalValue(0);
-      
+
       // Redirecionar após 2 segundos
       setTimeout(() => {
         navigate('/professional-dashboard/history');
       }, 2000);
-
     } catch (err) {
       console.error('Erro ao registrar serviço:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao registrar serviço');
+      setError(
+        err instanceof Error ? err.message : 'Erro ao registrar serviço',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -198,25 +209,33 @@ export const RegisterPerformedServices: React.FC = () => {
   return (
     <>
       <LoadingBackdrop open={loading} />
-      <Box component={Paper} sx={{ 
-        p: { xs: 1.5, sm: 3 }, 
-        maxWidth: '100%', 
-        mx: 'auto',
-        mt: { xs: 1, sm: 2 }
-      }}>
-        <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+      <Box
+        component={Paper}
+        sx={{
+          p: { xs: 1.5, sm: 3 },
+          maxWidth: '100%',
+          mx: 'auto',
+          mt: { xs: 1, sm: 2 },
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{ mb: 2, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
+        >
           Registro de Serviços Realizados
         </Typography>
 
         <Grid container spacing={{ xs: 1.5, sm: 2 }}>
           {/* Seleção de Serviços */}
           <Grid item xs={12}>
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              gap: 2
-            }}>
-              <FormControl size={isMobile ? "small" : "medium"}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+              }}
+            >
+              <FormControl size={isMobile ? 'small' : 'medium'}>
                 <InputLabel>Selecione o serviço</InputLabel>
                 <Select
                   value={selectedService}
@@ -224,31 +243,36 @@ export const RegisterPerformedServices: React.FC = () => {
                   label="Selecione o serviço"
                 >
                   {services.map((service) => (
-                    <MenuItem key={service.service_id} value={service.service_id}>
-                      {service.title} - R$ {service.value}
+                    <MenuItem
+                      key={service.service_id}
+                      value={service.service_id}
+                    >
+                      {service.name} - R$ {service.value}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
 
-              <Box sx={{ 
-                display: 'flex',
-                gap: 2,
-                alignItems: 'flex-start'
-              }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  alignItems: 'flex-start',
+                }}
+              >
                 <TextField
                   type="number"
                   label="Qtd"
                   value={serviceQuantity}
                   onChange={(e) => setServiceQuantity(Number(e.target.value))}
-                  size={isMobile ? "small" : "medium"}
+                  size={isMobile ? 'small' : 'medium'}
                   sx={{ width: '80px' }}
                   InputProps={{ inputProps: { min: 1 } }}
                 />
                 <IconButton
                   color="primary"
                   onClick={handleAddService}
-                  size={isMobile ? "small" : "medium"}
+                  size={isMobile ? 'small' : 'medium'}
                 >
                   <AddIcon />
                 </IconButton>
@@ -258,12 +282,14 @@ export const RegisterPerformedServices: React.FC = () => {
 
           {/* Seleção de Produtos */}
           <Grid item xs={12}>
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              gap: 2
-            }}>
-              <FormControl size={isMobile ? "small" : "medium"}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+              }}
+            >
+              <FormControl size={isMobile ? 'small' : 'medium'}>
                 <InputLabel>Selecione o produto</InputLabel>
                 <Select
                   value={selectedProduct}
@@ -271,31 +297,38 @@ export const RegisterPerformedServices: React.FC = () => {
                   label="Selecione o produto"
                 >
                   {products.map((product) => (
-                    <MenuItem key={product.product_id} value={product.product_id}>
+                    <MenuItem
+                      key={product.product_id}
+                      value={product.product_id}
+                    >
                       {product.name} - R$ {product.value}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
 
-              <Box sx={{ 
-                display: 'flex',
-                gap: 2,
-                alignItems: 'flex-start'
-              }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 2,
+                  alignItems: 'flex-start',
+                }}
+              >
                 <TextField
                   type="number"
                   label="Qtd"
                   value={productQuantity}
                   onChange={(e) => setProductQuantity(Number(e.target.value))}
-                  size={isMobile ? "small" : "medium"}
+                  size={isMobile ? 'small' : 'medium'}
                   sx={{ width: '80px' }}
                   InputProps={{ inputProps: { min: 1 } }}
                 />
                 <IconButton
                   color="primary"
-                  onClick={() => handleAddProduct(selectedProduct, productQuantity)}
-                  size={isMobile ? "small" : "medium"}
+                  onClick={() =>
+                    handleAddProduct(selectedProduct, productQuantity)
+                  }
+                  size={isMobile ? 'small' : 'medium'}
                 >
                   <AddIcon />
                 </IconButton>
@@ -305,44 +338,56 @@ export const RegisterPerformedServices: React.FC = () => {
 
           {/* Lista de itens */}
           <Grid item xs={12}>
-            <Box sx={{ 
-              border: '1px solid #ccc', 
-              borderRadius: 1,
-              overflow: 'auto',
-              mt: 1
-            }}>
+            <Box
+              sx={{
+                border: '1px solid #ccc',
+                borderRadius: 1,
+                overflow: 'auto',
+                mt: 1,
+              }}
+            >
               {/* Cabeçalho da tabela */}
-              <Box sx={{ 
-                display: 'flex', 
-                bgcolor: '#f5f5f5', 
-                borderBottom: '1px solid #ccc',
-                p: { xs: 1, sm: 1.5 },
-              }}>
-                <Typography sx={{ 
-                  flex: 1, 
-                  fontWeight: 'bold',
-                  fontSize: { xs: '0.875rem', sm: '1rem' }
-                }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  bgcolor: '#f5f5f5',
+                  borderBottom: '1px solid #ccc',
+                  p: { xs: 1, sm: 1.5 },
+                }}
+              >
+                <Typography
+                  sx={{
+                    flex: 1,
+                    fontWeight: 'bold',
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                  }}
+                >
                   Nome
                 </Typography>
-                <Box sx={{ 
-                  display: 'flex', 
-                  gap: { xs: 1, sm: 2 },
-                  minWidth: 'auto'
-                }}>
-                  <Typography sx={{ 
-                    width: '50px', 
-                    fontWeight: 'bold',
-                    fontSize: { xs: '0.875rem', sm: '1rem' }
-                  }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: { xs: 1, sm: 2 },
+                    minWidth: 'auto',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      width: '50px',
+                      fontWeight: 'bold',
+                      fontSize: { xs: '0.875rem', sm: '1rem' },
+                    }}
+                  >
                     Qtd
                   </Typography>
-                  <Typography sx={{ 
-                    width: '80px', 
-                    textAlign: 'right', 
-                    fontWeight: 'bold',
-                    fontSize: { xs: '0.875rem', sm: '1rem' }
-                  }}>
+                  <Typography
+                    sx={{
+                      width: '80px',
+                      textAlign: 'right',
+                      fontWeight: 'bold',
+                      fontSize: { xs: '0.875rem', sm: '1rem' },
+                    }}
+                  >
                     Valor
                   </Typography>
                   <Box sx={{ width: '40px' }} />
@@ -352,23 +397,30 @@ export const RegisterPerformedServices: React.FC = () => {
               {/* Lista de itens */}
               <Box sx={{ p: { xs: 1, sm: 1.5 } }}>
                 {selectedItems.map((item, index) => (
-                  <Box key={index} sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    mb: 1,
-                    '&:last-child': { mb: 0 }
-                  }}>
-                    <Typography sx={{ 
-                      flex: 1,
-                      fontSize: { xs: '0.875rem', sm: '1rem' }
-                    }}>
-                      {item.title}
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      mb: 1,
+                      '&:last-child': { mb: 0 },
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        flex: 1,
+                        fontSize: { xs: '0.875rem', sm: '1rem' },
+                      }}
+                    >
+                      {item.name}
                     </Typography>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: { xs: 1, sm: 2 }
-                    }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: { xs: 1, sm: 2 },
+                      }}
+                    >
                       <TextField
                         type="number"
                         size="small"
@@ -377,28 +429,30 @@ export const RegisterPerformedServices: React.FC = () => {
                           const newItems = [...selectedItems];
                           newItems[index] = {
                             ...newItems[index],
-                            quantity: Number(e.target.value)
+                            quantity: Number(e.target.value),
                           };
                           setSelectedItems(newItems);
                         }}
-                        InputProps={{ 
+                        InputProps={{
                           inputProps: { min: 1 },
-                          sx: { width: '50px' }
+                          sx: { width: '50px' },
                         }}
                       />
-                      <Typography sx={{ 
-                        width: '80px', 
-                        textAlign: 'right',
-                        fontSize: { xs: '0.875rem', sm: '1rem' }
-                      }}>
+                      <Typography
+                        sx={{
+                          width: '80px',
+                          textAlign: 'right',
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                        }}
+                      >
                         R$ {(item.value * item.quantity).toFixed(2)}
                       </Typography>
-                      <IconButton 
-                        color="error" 
+                      <IconButton
+                        color="error"
                         onClick={() => handleRemoveItem(index)}
                         size="small"
                       >
-                        <DeleteIcon fontSize={isMobile ? "small" : "medium"} />
+                        <DeleteIcon fontSize={isMobile ? 'small' : 'medium'} />
                       </IconButton>
                     </Box>
                   </Box>
@@ -416,22 +470,27 @@ export const RegisterPerformedServices: React.FC = () => {
               label="Observações"
               value={observations}
               onChange={(e) => setObservations(e.target.value)}
-              size={isMobile ? "small" : "medium"}
+              size={isMobile ? 'small' : 'medium'}
             />
           </Grid>
 
           {/* Total e Botão */}
           <Grid item xs={12}>
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              gap: 2,
-              mt: 1
-            }}>
-              <Typography variant="h6" sx={{ 
-                fontSize: { xs: '1rem', sm: '1.25rem' },
-                textAlign: 'right'
-              }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                mt: 1,
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  fontSize: { xs: '1rem', sm: '1.25rem' },
+                  textAlign: 'right',
+                }}
+              >
                 Valor Total: R$ {totalValue.toFixed(2)}
               </Typography>
               <Button
@@ -439,7 +498,7 @@ export const RegisterPerformedServices: React.FC = () => {
                 color="primary"
                 onClick={handleSubmit}
                 disabled={isSubmitting || selectedItems.length === 0}
-                size={isMobile ? "medium" : "large"}
+                size={isMobile ? 'medium' : 'large'}
                 fullWidth
               >
                 {isSubmitting ? 'REGISTRANDO...' : 'REGISTRAR'}
@@ -449,9 +508,9 @@ export const RegisterPerformedServices: React.FC = () => {
         </Grid>
 
         {/* Snackbars */}
-        <Snackbar 
-          open={!!error} 
-          autoHideDuration={6000} 
+        <Snackbar
+          open={!!error}
+          autoHideDuration={6000}
           onClose={() => setError(null)}
         >
           <Alert severity="error" onClose={() => setError(null)}>
@@ -459,9 +518,9 @@ export const RegisterPerformedServices: React.FC = () => {
           </Alert>
         </Snackbar>
 
-        <Snackbar 
-          open={success} 
-          autoHideDuration={6000} 
+        <Snackbar
+          open={success}
+          autoHideDuration={6000}
           onClose={() => setSuccess(false)}
         >
           <Alert severity="success" onClose={() => setSuccess(false)}>
@@ -473,4 +532,4 @@ export const RegisterPerformedServices: React.FC = () => {
   );
 };
 
-export default RegisterPerformedServices; 
+export default RegisterPerformedServices;

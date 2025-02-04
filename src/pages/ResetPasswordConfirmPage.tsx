@@ -1,69 +1,27 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/ResetPasswordConfirmPage.tsx
+import React from 'react';
 import {
   TextField,
   Button,
   Box,
   Typography,
-  Link,
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { supabase } from '../services/supabaseClient';
+import { Link } from 'react-router-dom';
+import { useResetPasswordConfirm } from '../hooks/useResetPasswordConfirm';
 
 const ResetPasswordConfirmPage = () => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
-
-  useEffect(() => {
-    if (!token) {
-      setError('Token de redefinição de senha inválido.');
-    }
-  }, [token]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage('');
-    setError('');
-    setLoading(true);
-
-    if (!newPassword || !confirmNewPassword) {
-      setError('Por favor, preencha todos os campos.');
-      setLoading(false);
-      return;
-    }
-
-    if (newPassword !== confirmNewPassword) {
-      setError('As senhas não coincidem.');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (error) {
-        setError(`Erro ao redefinir senha: ${error.message}`);
-      } else {
-        setMessage('Senha redefinida com sucesso! Redirecionando para a tela de login...');
-        setTimeout(() => {
-          navigate('/login');
-        }, 3000);
-      }
-    } catch (err) {
-      setError('Ocorreu um erro ao tentar redefinir a senha.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    newPassword,
+    setNewPassword,
+    confirmNewPassword,
+    setConfirmNewPassword,
+    message,
+    error,
+    loading,
+    handleSubmit,
+  } = useResetPasswordConfirm();
 
   return (
     <Box
@@ -111,10 +69,14 @@ const ResetPasswordConfirmPage = () => {
           color="primary"
           disabled={loading}
         >
-          {loading ? <CircularProgress size={24} color="inherit" /> : 'Redefinir Senha'}
+          {loading ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : (
+            'Redefinir Senha'
+          )}
         </Button>
         <Typography variant="body2" align="center">
-          <Link href="/login" underline="hover">
+          <Link to="/login" style={{ textDecoration: 'none' }}>
             Voltar ao Login
           </Link>
         </Typography>

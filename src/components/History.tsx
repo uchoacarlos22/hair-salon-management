@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { performedServicesService } from '../services/performedServicesService';
-import { servicesService } from '../services/servicesService';
-import { productsService } from '../services/productsService';
-import { supabase } from '../services/supabaseClient';
-    import {
+// src/pages/History.tsx
+
+import React, { useState } from 'react';
+import {
   Box,
   Typography,
   Button,
@@ -11,80 +9,28 @@ import { supabase } from '../services/supabaseClient';
   Chip,
   useTheme,
   useMediaQuery,
-      Paper,
+  Paper,
   IconButton,
   TablePagination,
   Backdrop,
   CircularProgress,
-    } from '@mui/material';
-import { PerformedService } from '../types/performedServices';
-import { Service } from '../types/services';
-import { Product } from '../types/products';
+} from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-
-interface ServiceWithDetails extends PerformedService {
-  serviceDetails?: Map<string, Service>;
-  productDetails?: Map<string, Product>;
-}
+import { usePerformedServices, ServiceWithDetails } from '../hooks/usePerformedServices';
 
 export const History: React.FC = () => {
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('md'));
 
-  const [services, setServices] = useState<ServiceWithDetails[]>([]);
-  const [servicesMap, setServicesMap] = useState<Map<string, Service>>(
-    new Map(),
-  );
-  const [productsMap, setProductsMap] = useState<Map<string, Product>>(
-    new Map(),
-  );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedService, setSelectedService] =
-    useState<ServiceWithDetails | null>(null);
+  // Usa o hook para obter os dados e estados de carregamento/erro
+  const { services, servicesMap, productsMap, loading, error } = usePerformedServices();
+
+  const [selectedService, setSelectedService] = useState<ServiceWithDetails | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(5);
 
-      useEffect(() => {
-    loadAllData();
-  }, []);
-
-  const loadAllData = async () => {
-    try {
-      setLoading(true);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      // Carregar serviços e produtos para referência
-      const [servicesData, productsData, performedServices] = await Promise.all(
-        [
-          servicesService.fetchServices(),
-          productsService.fetchProducts(),
-          performedServicesService.fetchPerformedServices(user.id),
-        ],
-      );
-
-      // Criar maps para lookup rápido
-      const sMap = new Map(servicesData.map((s) => [s.service_id, s]));
-      const pMap = new Map(productsData.map((p) => [p.product_id, p]));
-
-      setServicesMap(sMap);
-      setProductsMap(pMap);
-      setServices(performedServices);
-          } catch (err) {
-      console.error('Erro ao carregar dados:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Retorna o tipo do serviço para exibição
   const getServiceType = (service: ServiceWithDetails) => {
     if (service.service?.length > 0 && service.products_sold?.length > 0) {
       return 'Serviço e Produto';
@@ -105,7 +51,7 @@ export const History: React.FC = () => {
     setPage(newPage);
   };
 
-  // Calcula os itens que devem ser mostrados na página atual
+  // Calcula os itens a serem exibidos na página atual
   const currentPageServices = services.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage,
@@ -113,7 +59,7 @@ export const History: React.FC = () => {
 
   if (error) return <Typography color="error">{error}</Typography>;
 
-      return (
+  return (
     <>
       {/* Loading Backdrop */}
       <Backdrop
@@ -122,20 +68,22 @@ export const History: React.FC = () => {
           zIndex: (theme) => theme.zIndex.drawer + 1,
           display: 'flex',
           flexDirection: 'column',
-          gap: 2
+          gap: 2,
         }}
         open={loading}
       >
         <CircularProgress color="inherit" />
-        <Typography sx={{ 
-          color: 'white',
-          fontSize: { xs: '1rem', sm: '1.1rem' }
-        }}>
+        <Typography
+          sx={{
+            color: 'white',
+            fontSize: { xs: '1rem', sm: '1.1rem' },
+          }}
+        >
           Carregando...
         </Typography>
       </Backdrop>
 
-      {/* Conteúdo principal */}
+      {/* Conteúdo Principal */}
       <Box
         sx={{
           width: '100%',
@@ -154,17 +102,14 @@ export const History: React.FC = () => {
             px: 1,
           }}
         >
-            Histórico de Serviços
-          </Typography>
+          Histórico de Serviços
+        </Typography>
 
         {/* Lista de Serviços */}
         <Box
           component={Paper}
           sx={{
-            width: {
-              xs: '100%',
-              md: '95%',
-            },
+            width: { xs: '100%', md: '95%' },
             borderRadius: 0,
             overflow: 'hidden',
             mt: 1,
@@ -225,7 +170,7 @@ export const History: React.FC = () => {
             </Typography>
           </Box>
 
-          {/* Lista apenas os itens da página atual */}
+          {/* Lista de itens da página atual */}
           {currentPageServices.map((service) => (
             <Box
               key={service.performed_id}
@@ -301,13 +246,11 @@ export const History: React.FC = () => {
           <TablePagination
             component="div"
             count={services.length}
-              page={page}
+            page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={[5]} // Fixado em 5 itens por página
-            labelDisplayedRows={({ from, to, count }) =>
-              `${from}-${to} de ${count}`
-            }
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
             labelRowsPerPage="" // Remove o texto "Linhas por página"
             sx={{
               borderTop: '1px solid #eee',
@@ -371,9 +314,7 @@ export const History: React.FC = () => {
                   }}
                 >
                   Data:{' '}
-                  {new Date(selectedService.created_at!).toLocaleDateString(
-                    'pt-BR',
-                  )}
+                  {new Date(selectedService.created_at!).toLocaleDateString('pt-BR')}
                 </Typography>
 
                 {selectedService.service?.length > 0 && (
@@ -388,7 +329,7 @@ export const History: React.FC = () => {
                       Serviços:
                     </Typography>
                     {selectedService.service.map((s, index) => {
-                      const service = servicesMap.get(s.service_id);
+                      const serviceData = servicesMap.get(s.service_id);
                       return (
                         <Box
                           key={index}
@@ -399,14 +340,10 @@ export const History: React.FC = () => {
                             py: 0.5,
                           }}
                         >
-                          <Typography
-                            sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
-                          >
-                            {service?.title} - {s.quantity}x
+                          <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                            {serviceData?.name} - {s.quantity}x
                           </Typography>
-                          <Typography
-                            sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
-                          >
+                          <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                             R$ {(s.value * s.quantity).toFixed(2)}
                           </Typography>
                         </Box>
@@ -427,7 +364,7 @@ export const History: React.FC = () => {
                       Produtos:
                     </Typography>
                     {selectedService.products_sold.map((p, index) => {
-                      const product = productsMap.get(p.product_id);
+                      const productData = productsMap.get(p.product_id);
                       return (
                         <Box
                           key={index}
@@ -438,14 +375,10 @@ export const History: React.FC = () => {
                             py: 0.5,
                           }}
                         >
-                          <Typography
-                            sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
-                          >
-                            {product?.name} - {p.quantity}x
+                          <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                            {productData?.name} - {p.quantity}x
                           </Typography>
-                          <Typography
-                            sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
-                          >
+                          <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                             R$ {(p.value * p.quantity).toFixed(2)}
                           </Typography>
                         </Box>
@@ -505,9 +438,9 @@ export const History: React.FC = () => {
             )}
           </Box>
         </Modal>
-        </Box>
+      </Box>
     </>
-      );
-    };
+  );
+};
 
-    export default History;
+export default History;
