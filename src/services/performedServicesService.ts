@@ -44,7 +44,9 @@ export const performedServicesService = {
       .order('created_at', { ascending: false });
 
     if (startDate && endDate) {
-      query.gte('created_at', startDate).lte('created_at', endDate);
+      const endOfDay = new Date(endDate);
+      endOfDay.setDate(endOfDay.getDate() + 1);
+      query.gte('created_at', startDate).lt('created_at', endOfDay.toISOString().split('T')[0]);
     }
 
     if (professionalId) {
