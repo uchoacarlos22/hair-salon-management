@@ -1,6 +1,4 @@
-// src/pages/History.tsx
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import {
   Box,
   Typography,
@@ -14,23 +12,118 @@ import {
   TablePagination,
   Backdrop,
   CircularProgress,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import { usePerformedServices, ServiceWithDetails } from '../hooks/usePerformedServices';
+import {
+  usePerformedServices,
+  ServiceWithDetails,
+} from '../hooks/usePerformedServices';
+import { fetchProfessionals } from '../services/professionalsService';
+import { servicesService } from '../services/servicesService';
+import { SelectChangeEvent } from '@mui/material/Select';
+
+interface Professional {
+  user_id: string;
+  name: string;
+}
+
+interface AvailableService {
+  service_id: string;
+  name: string;
+}
 
 export const History: React.FC = () => {
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Usa o hook para obter os dados e estados de carregamento/erro
-  const { services, servicesMap, productsMap, loading, error } = usePerformedServices();
+  // Filter states
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+  const [professionalId, setProfessionalId] = useState<string | null>(null);
+  const [selectedServiceType, setSelectedServiceType] = useState<string | null>(
+    null,
+  );
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [availableServices, setAvailableServices] = useState<
+    AvailableService[]
+  >([]);
 
-  const [selectedService, setSelectedService] = useState<ServiceWithDetails | null>(null);
+  useEffect(() => {
+    const fetchProfessionalsData = async () => {
+      const professionalsData = await fetchProfessionals();
+      const validProfessionals = professionalsData
+        .filter((user) => user.user_id !== undefined)
+        .map((user) => ({
+          user_id: user.user_id!,
+          name: user.name,
+        }));
+      setProfessionals(validProfessionals);
+    };
+
+    const fetchServices = async () => {
+      const servicesData = await servicesService.fetchServices();
+      setAvailableServices(servicesData);
+    };
+
+    fetchProfessionalsData();
+    fetchServices();
+  }, []);
+
+  const {
+    services,
+    servicesMap,
+    productsMap,
+    loading,
+    error,
+    setStartDate: setHookStartDate,
+    setEndDate: setHookEndDate,
+    setProfessionalId: setHookProfessionalId,
+    setServiceType: setHookServiceType,
+  } = usePerformedServices();
+
+  const handleStartDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setStartDate(event.target.value);
+    setHookStartDate(event.target.value);
+  };
+
+  const handleEndDateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setEndDate(event.target.value);
+    setHookEndDate(event.target.value);
+  };
+
+  const handleServiceTypeChange = (event: SelectChangeEvent<string>) => {
+    setSelectedServiceType(event.target.value);
+    setHookServiceType(event.target.value);
+  };
+
+  const handleProfessionalChange = (event: SelectChangeEvent<string>) => {
+    setProfessionalId(event.target.value);
+    setHookProfessionalId(event.target.value);
+  };
+
+  const handleClearFilters = () => {
+    setStartDate(null);
+    setEndDate(null);
+    setProfessionalId(null);
+    setSelectedServiceType(null);
+    setHookStartDate(undefined);
+    setHookEndDate(undefined);
+    setHookProfessionalId(undefined);
+    setHookServiceType(undefined);
+  };
+
+  const [selectedService, setSelectedService] =
+    useState<ServiceWithDetails | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(5);
 
-  // Retorna o tipo do serviço para exibição
+ // Retorna o tipo do serviço para exibição
   const getServiceType = (service: ServiceWithDetails) => {
     if (service.service?.length > 0 && service.products_sold?.length > 0) {
       return 'Serviço e Produto';
@@ -51,7 +144,7 @@ export const History: React.FC = () => {
     setPage(newPage);
   };
 
-  // Calcula os itens a serem exibidos na página atual
+  // Calculates the items to be displayed on the current page
   const currentPageServices = services.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage,
@@ -83,7 +176,7 @@ export const History: React.FC = () => {
         </Typography>
       </Backdrop>
 
-      {/* Conteúdo Principal */}
+      {/* Main Content */}
       <Box
         sx={{
           width: '100%',
@@ -105,7 +198,79 @@ export const History: React.FC = () => {
           Histórico de Serviços
         </Typography>
 
-        {/* Lista de Serviços */}
+        {/* Filter Section */}
+        <Box
+          sx={{
+            width: { xs: '100%', md: '95%' },
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'space-around',
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <TextField
+            label="Data Inicial"
+            type="date"
+            value={startDate || ''}
+            onChange={handleStartDateChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            sx={{ width: { xs: '100%', sm: '150px' } }}
+          />
+          <TextField
+            label="Data Final"
+            type="date"
+            value={endDate || ''}
+            onChange={handleEndDateChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            sx={{ width: { xs: '100%', sm: '150px' } }}
+          />
+          <FormControl sx={{ width: { xs: '100%', sm: '150px' } }}>
+            <InputLabel id="service-type-label">Tipo de Serviço</InputLabel>
+            <Select
+              labelId="service-type-label"
+              value={selectedServiceType || ''}
+              onChange={handleServiceTypeChange}
+              label="Tipo de Serviço"
+            >
+              <MenuItem value="">Todos</MenuItem>
+              <MenuItem value="Serviço">Serviço</MenuItem>
+              <MenuItem value="Produto">Produto</MenuItem>
+              <MenuItem value="Serviço e Produto">Serviço e Produto</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl sx={{ width: { xs: '100%', sm: '150px' } }}>
+            <InputLabel id="professional-label">Profissional</InputLabel>
+            <Select
+              labelId="professional-label"
+              value={professionalId || ''}
+              onChange={handleProfessionalChange}
+              label="Profissional"
+            >
+              <MenuItem value="">Todos</MenuItem>
+              {professionals.map((professional) => (
+                <MenuItem
+                  key={professional.user_id}
+                  value={professional.user_id}
+                >
+                  {professional.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button
+            onClick={handleClearFilters}
+            sx={{ width: { xs: '100%', sm: '200px' } }}
+          >
+            Limpar Filtros
+          </Button>
+        </Box>
+
+        {/* Service List */}
         <Box
           component={Paper}
           sx={{
@@ -115,7 +280,7 @@ export const History: React.FC = () => {
             mt: 1,
           }}
         >
-          {/* Cabeçalho */}
+          {/* Header */}
           <Box
             sx={{
               display: 'flex',
@@ -126,30 +291,43 @@ export const History: React.FC = () => {
           >
             <Typography
               sx={{
-                width: { xs: '40%', md: '30%' },
+                width: { xs: '40%', md: '20%' },
                 fontWeight: 500,
                 fontSize: { xs: '0.875rem', sm: '1rem' },
               }}
             >
               Data
             </Typography>
-
             {!isCompact && (
               <Typography
                 sx={{
-                  width: '30%',
-                  flex: 1,
+                  width: { xs: '25%', md: '20%' },
                   fontWeight: 500,
-                  fontSize: '1rem',
+                  fontSize: { xs: '0.875rem', sm: '1rem' },
                 }}
               >
                 Tipo
               </Typography>
             )}
 
+            {!isCompact && (
+              <>
+                <Typography
+                  sx={{
+                    width: { xs: '25%', md: '25%' },
+                    flex: 1,
+                    fontWeight: 500,
+                    fontSize: '1rem',
+                  }}
+                >
+                  Profissional
+                </Typography>
+              </>
+            )}
+
             <Typography
               sx={{
-                width: { xs: '40%', md: '30%' },
+                width: { xs: '30%', md: '15%' },
                 textAlign: 'left',
                 fontWeight: 500,
                 fontSize: { xs: '0.875rem', sm: '1rem' },
@@ -160,7 +338,7 @@ export const History: React.FC = () => {
 
             <Typography
               sx={{
-                width: { xs: '20%', md: '10%' },
+                width: { xs: '30%', md: '20%' },
                 textAlign: 'center',
                 fontWeight: 500,
                 fontSize: { xs: '0.875rem', sm: '1rem' },
@@ -170,7 +348,7 @@ export const History: React.FC = () => {
             </Typography>
           </Box>
 
-          {/* Lista de itens da página atual */}
+          {/* List of items on the current page */}
           {currentPageServices.map((service) => (
             <Box
               key={service.performed_id}
@@ -188,16 +366,15 @@ export const History: React.FC = () => {
             >
               <Typography
                 sx={{
-                  width: { xs: '40%', md: '30%' },
+                  width: { xs: '40%', md: '20%' },
                   fontSize: { xs: '0.875rem', sm: '1rem' },
                   color: 'text.primary',
                 }}
               >
                 {new Date(service.created_at!).toLocaleDateString('pt-BR')}
               </Typography>
-
               {!isCompact && (
-                <Box sx={{ flex: 1 }}>
+                <Box sx={{ width: { xs: '25%', md: '20%' } }}>
                   <Chip
                     label={getServiceType(service)}
                     color="primary"
@@ -208,9 +385,22 @@ export const History: React.FC = () => {
                 </Box>
               )}
 
+              {!isCompact && (
+                <Typography
+                  sx={{
+                    width: { xs: '25%', md: '25%' },
+                    flex: 1,
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    color: 'text.primary',
+                  }}
+                >
+                  {service.users_table?.name}
+                </Typography>
+              )}
+
               <Typography
                 sx={{
-                  width: { xs: '40%', md: '30%' },
+                  width: { xs: '30%', md: '15%' },
                   textAlign: 'left',
                   fontSize: { xs: '0.875rem', sm: '1rem' },
                   fontWeight: 500,
@@ -222,7 +412,7 @@ export const History: React.FC = () => {
 
               <Box
                 sx={{
-                  width: { xs: '20%', md: '10%' },
+                  width: { xs: '30%', md: '20%' },
                   textAlign: 'center',
                 }}
               >
@@ -242,23 +432,25 @@ export const History: React.FC = () => {
             </Box>
           ))}
 
-          {/* Paginação */}
+          {/* Pagination */}
           <TablePagination
             component="div"
             count={services.length}
             page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[5]} // Fixado em 5 itens por página
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-            labelRowsPerPage="" // Remove o texto "Linhas por página"
+            rowsPerPageOptions={[5]} // Fixed at 5 items per page
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}-${to} de ${count}`
+            }
+            labelRowsPerPage="" // Removes the text "Rows per page"
             sx={{
               borderTop: '1px solid #eee',
             }}
           />
         </Box>
 
-        {/* Modal de Detalhes */}
+        {/* Details Modal */}
         <Modal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
@@ -281,7 +473,7 @@ export const History: React.FC = () => {
           >
             {selectedService && (
               <>
-                {/* Botão de fechar */}
+                {/* Close Button */}
                 <IconButton
                   onClick={() => setModalOpen(false)}
                   sx={{
@@ -301,7 +493,7 @@ export const History: React.FC = () => {
                     mb: 2,
                     pb: 1,
                     borderBottom: '1px solid #eee',
-                    pr: 4, // Espaço para o botão de fechar
+                    pr: 4, // Space for the close button
                   }}
                 >
                   Detalhes do Serviço
@@ -314,7 +506,9 @@ export const History: React.FC = () => {
                   }}
                 >
                   Data:{' '}
-                  {new Date(selectedService.created_at!).toLocaleDateString('pt-BR')}
+                  {new Date(selectedService.created_at!).toLocaleDateString(
+                    'pt-BR',
+                  )}
                 </Typography>
 
                 {selectedService.service?.length > 0 && (
@@ -340,10 +534,14 @@ export const History: React.FC = () => {
                             py: 0.5,
                           }}
                         >
-                          <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                          <Typography
+                            sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                          >
                             {serviceData?.name} - {s.quantity}x
                           </Typography>
-                          <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                          <Typography
+                            sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                          >
                             R$ {(s.value * s.quantity).toFixed(2)}
                           </Typography>
                         </Box>
@@ -375,10 +573,14 @@ export const History: React.FC = () => {
                             py: 0.5,
                           }}
                         >
-                          <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                          <Typography
+                            sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                          >
                             {productData?.name} - {p.quantity}x
                           </Typography>
-                          <Typography sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                          <Typography
+                            sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                          >
                             R$ {(p.value * p.quantity).toFixed(2)}
                           </Typography>
                         </Box>
@@ -387,25 +589,14 @@ export const History: React.FC = () => {
                   </Box>
                 )}
 
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    sx={{
-                      fontSize: { xs: '1rem', sm: '1.1rem' },
-                      fontWeight: 500,
-                      mb: 1,
-                    }}
-                  >
-                    Observações:
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: { xs: '0.875rem', sm: '1rem' },
-                      color: 'text.secondary',
-                    }}
-                  >
-                    {selectedService.observations || 'Nenhuma observação'}
-                  </Typography>
-                </Box>
+                <Typography
+                  sx={{
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    color: 'text.secondary',
+                  }}
+                >
+                  {selectedService.observations || 'Nenhuma observação'}
+                </Typography>
 
                 <Box
                   sx={{

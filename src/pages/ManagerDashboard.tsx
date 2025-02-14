@@ -1,5 +1,3 @@
-// src/components/ManagerDashboard.tsx
-import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import {
   Drawer,
@@ -23,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import LogoutButton from '../components/LogoutButton';
 import ProfessionalsManagement from '../components/ProfessionalsManagement';
+import History from '../components/History';
 import { useDrawerToggle } from '../hooks/useDrawerToggle';
 
 const drawerWidth = 240;
@@ -62,6 +61,18 @@ const ManagerDashboard = () => {
               <PlaylistAddCheckIcon />
             </ListItemIcon>
             <ListItemText primary="Gestão de Colaboradores" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/manager-dashboard/history"
+            onClick={() => isMobile && handleDrawerToggle()}
+          >
+            <ListItemIcon>
+              <PlaylistAddCheckIcon />
+            </ListItemIcon>
+            <ListItemText primary="Historico geral de serviços prestados" />
           </ListItemButton>
         </ListItem>
         {/* Outras opções de menu podem ser adicionadas aqui */}
@@ -147,7 +158,7 @@ const ManagerDashboard = () => {
             path="/professionals-management"
             element={<ProfessionalsManagement />}
           />
-          {/* Outras rotas do dashboard podem ser adicionadas aqui */}
+          <Route path="/history" element={<History />} />
         </Routes>
       </Box>
     </Box>

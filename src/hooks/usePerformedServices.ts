@@ -24,6 +24,10 @@ export const usePerformedServices = () => {
   const [productsMap, setProductsMap] = useState<Map<string, Product>>(new Map());
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string | undefined>(undefined);
+  const [endDate, setEndDate] = useState<string | undefined>(undefined);
+  const [professionalId, setProfessionalId] = useState<string | undefined>(undefined);
+  const [serviceType, setServiceType] = useState<string | undefined>(undefined);
 
   const loadAllData = async () => {
     try {
@@ -41,7 +45,12 @@ export const usePerformedServices = () => {
       const [servicesData, productsData, performedServices] = await Promise.all([
         servicesService.fetchServices(),
         productsService.fetchProducts(),
-        performedServicesService.fetchPerformedServices(user.id),
+        performedServicesService.fetchPerformedServices(
+          user.id,
+          startDate,
+          endDate,
+          professionalId,
+        ),
       ]);
 
       // Cria maps para acesso rápido aos dados
@@ -50,7 +59,23 @@ export const usePerformedServices = () => {
 
       setServicesMap(sMap);
       setProductsMap(pMap);
-      setServices(performedServices);
+
+      let filteredServices = performedServices;
+
+      if (serviceType) {
+        filteredServices = performedServices.filter((service: PerformedService) => {
+          if (serviceType === 'Serviço e Produto') {
+            return service.service?.length > 0 && service.products_sold?.length > 0;
+          } else if (serviceType === 'Serviço') {
+            return service.service?.length > 0 && (!service.products_sold || service.products_sold.length === 0);
+          } else if (serviceType === 'Produto') {
+            return service.products_sold?.length > 0 && (!service.service || service.service.length === 0);
+          }
+          return true;
+        });
+      }
+
+      setServices(filteredServices);
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
@@ -61,7 +86,22 @@ export const usePerformedServices = () => {
 
   useEffect(() => {
     loadAllData();
-  }, []);
+  }, [startDate, endDate, professionalId, serviceType]);
 
-  return { services, servicesMap, productsMap, loading, error, reload: loadAllData };
+  return {
+    services,
+    servicesMap,
+    productsMap,
+    loading,
+    error,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    professionalId,
+    setProfessionalId,
+    serviceType,
+    setServiceType,
+    reload: loadAllData,
+  };
 };

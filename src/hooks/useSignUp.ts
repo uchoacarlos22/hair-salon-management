@@ -33,7 +33,7 @@ export const useSignUp = () => {
         password,
         options: {
           data: {
-            role: "profissional", // Role padrão
+            role: "professional", // Role padrão
           },
         },
       });
@@ -44,7 +44,7 @@ export const useSignUp = () => {
         // Inserção dos dados do usuário na tabela "users_table"
         const { error: userError } = await supabase
           .from('users_table')
-          .insert([{ user_id: data.user?.id, email: email, role: 'profissional' }]);
+          .insert([{ user_id: data.user?.id, email: email, role: 'professional' }]);
 
         if (userError) {
           setError(`Erro ao inserir dados do usuário: ${userError.message}`);
