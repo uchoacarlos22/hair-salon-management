@@ -8,6 +8,7 @@ import ResetPasswordConfirmPage from './pages/ResetPasswordConfirmPage';
 import NewPasswordPage from './pages/NewPasswordPage';
 import ProfessionalDashboard from './pages/ProfessionalDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingBackdrop from './components/LoadingBackdrop';
 
@@ -91,11 +92,10 @@ function App() {
             !currentPath.includes('/professional-dashboard')
           ) {
             navigate('/professional-dashboard');
-          } else if (
-            (role === 'manager' || role === 'admin') &&
-            !currentPath.includes('/manager-dashboard')
-          ) {
+          } else if (role === 'manager' && !currentPath.includes('/manager-dashboard')) {
             navigate('/manager-dashboard');
+          } else if (role === 'admin' && !currentPath.includes('/admin-dashboard')) {
+            navigate('/admin-dashboard');
           }
         }
       } catch (error) {
@@ -117,7 +117,18 @@ function App() {
   }) => {
     if (!session) return <Navigate to="/login" replace />;
     if (userRole !== 'professional')
-      return <Navigate to="/manager-dashboard" replace />;
+      return <Navigate to="/professional-dashboard" replace />;
+    return <>{children}</>;
+  };
+
+  const ProtectedAdminRoute = ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => {
+    if (!session) return <Navigate to="/login" replace />;
+    if (userRole !== 'admin')
+      return <Navigate to="/admin-dashboard" replace />;
     return <>{children}</>;
   };
 
@@ -127,10 +138,12 @@ function App() {
     children: React.ReactNode;
   }) => {
     if (!session) return <Navigate to="/login" replace />;
-    if (userRole !== 'manager' && userRole !== 'admin')
-      return <Navigate to="/professional-dashboard" replace />;
+    if (userRole !== 'manager')
+      return <Navigate to="/manager-dashboard" replace />;
     return <>{children}</>;
   };
+
+  
 
   if (isLoading) {
     return <LoadingBackdrop open={true} />;
@@ -187,11 +200,11 @@ function App() {
         />
 
         <Route
-          path="/professional-dashboard/*"
+          path="/admin-dashboard/*"
           element={
-            <ProtectedProfessionalRoute>
-              <ProfessionalDashboard />
-            </ProtectedProfessionalRoute>
+            <ProtectedAdminRoute>
+              <AdminDashboard />
+            </ProtectedAdminRoute>
           }
         />
 
@@ -201,6 +214,15 @@ function App() {
             <ProtectedManagerRoute>
               <ManagerDashboard />
             </ProtectedManagerRoute>
+          }
+        />
+
+       <Route
+          path="/professional-dashboard/*"
+          element={
+            <ProtectedProfessionalRoute>
+              <ProfessionalDashboard />
+            </ProtectedProfessionalRoute>
           }
         />
 

@@ -171,7 +171,7 @@ const ProfessionalDashboard = () => {
             path="/register-service"
             element={<RegisterPerformedServices />}
           />
-          <Route path="/history" element={<History />} />
+          <Route path="/history" element={<History userRole="user" />} />
           <Route path="/profile" element={<Profile />} />
         </Routes>
       </Box>

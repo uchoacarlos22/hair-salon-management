@@ -158,7 +158,7 @@ const ManagerDashboard = () => {
             path="/professionals-management"
             element={<ProfessionalsManagement />}
           />
-          <Route path="/history" element={<History />} />
+          <Route path="/history" element={<History userRole="manager" />} />
         </Routes>
       </Box>
     </Box>

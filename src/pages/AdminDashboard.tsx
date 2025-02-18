@@ -1,81 +1,168 @@
+import React from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Box,
+  AppBar,
+  Toolbar,
+  IconButton,
+  Typography,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
-import { useAdminDashboard, User } from '../hooks/useAdminDashboard';
+import {
+  PlaylistAddCheck as PlaylistAddCheckIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon,
+} from '@mui/icons-material';
+import LogoutButton from '../components/LogoutButton';
+import ProfessionalsManagement from '../components/ProfessionalsManagement';
+import History from '../components/History';
+import { useDrawerToggle } from '../hooks/useDrawerToggle';
+
+const drawerWidth = 240;
 
 const AdminDashboard = () => {
-  const { users, loading, error, handleRoleChange } = useAdminDashboard();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { mobileOpen, handleDrawerToggle } = useDrawerToggle();
 
-  if (loading) {
-    return <p>Carregando usuários...</p>;
-  }
-
-  if (error) {
-    return <p>Erro: {error}</p>;
-  }
+  const drawer = (
+    <Box sx={{ mt: isMobile ? 8 : 0 }}>
+      {isMobile && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 1,
+          }}
+        >
+          <IconButton
+            onClick={handleDrawerToggle}
+            sx={{ color: 'text.secondary' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      )}
+      <List>
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/admin-dashboard/professionals-management"
+            onClick={() => isMobile && handleDrawerToggle()}
+          >
+            <ListItemIcon>
+              <PlaylistAddCheckIcon />
+            </ListItemIcon>
+            <ListItemText primary="Gestão de Colaboradores" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/admin-dashboard/history"
+            onClick={() => isMobile && handleDrawerToggle()}
+          >
+            <ListItemIcon>
+              <PlaylistAddCheckIcon />
+            </ListItemIcon>
+            <ListItemText primary="Historico geral de serviços prestados" />
+          </ListItemButton>
+        </ListItem>
+        {/* Outras opções de menu podem ser adicionadas aqui */}
+        <LogoutButton />
+      </List>
+    </Box>
+  );
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 650 }} aria-label="simple table">
-        <TableHead>
-          <TableRow>
-            <TableCell>ID do Usuário</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Role</TableCell>
-            <TableCell>Ações</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {users.map((user: User) => (
-            <TableRow key={user.user_id}>
-              <TableCell>{user.user_id}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>
-                <FormControl fullWidth>
-                  <InputLabel id={`role-select-label-${user.user_id}`}>Role</InputLabel>
-                  <Select
-                    labelId={`role-select-label-${user.user_id}`}
-                    id={`role-select-${user.user_id}`}
-                    value={user.role}
-                    label="Role"
-                    onChange={(e) => handleRoleChange(user.user_id, e.target.value)}
-                  >
-                    <MenuItem value="profissional">Profissional</MenuItem>
-                    <MenuItem value="gestor">Gestor</MenuItem>
-                    <MenuItem value="admin">Admin</MenuItem>
-                  </Select>
-                </FormControl>
-              </TableCell>
-              <TableCell>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() =>
-                    handleRoleChange(
-                      user.user_id,
-                      user.role === 'profissional' ? 'gestor' : 'profissional'
-                    )
-                  }
-                >
-                  {user.role === 'profissional' ? 'Tornar Gestor' : 'Tornar Profissional'}
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Box sx={{ display: 'flex' }}>
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          ml: { sm: `${drawerWidth}px` },
+        }}
+      >
+        <Toolbar>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{ mr: 2, display: { sm: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div">
+            Dashboard Admin
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
+      <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+      >
+        {/* Drawer para dispositivos móveis */}
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true, // Melhora o desempenho em mobile
+          }}
+          sx={{
+            display: { xs: 'block', sm: 'none' },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+            },
+          }}
+        >
+          {drawer}
+        </Drawer>
+        {/* Drawer permanente para telas maiores */}
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', sm: 'block' },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+            },
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
+      </Box>
+
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 2,
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          mt: 4, // Espaço para o AppBar
+        }}
+      >
+        <Routes>
+          <Route
+            path="/professionals-management"
+            element={<ProfessionalsManagement />}
+          />
+          <Route path="/history" element={<History userRole="admin" />} />
+        </Routes>
+      </Box>
+    </Box>
   );
 };
 

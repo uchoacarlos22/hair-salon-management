@@ -37,7 +37,11 @@ interface AvailableService {
   name: string;
 }
 
-export const History: React.FC = () => {
+interface HistoryProps {
+  userRole: 'manager' | 'admin' | 'user';
+}
+
+export const History: React.FC<HistoryProps> = ({ userRole }) => {
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -123,7 +127,7 @@ export const History: React.FC = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(5);
 
- // Retorna o tipo do serviço para exibição
+  // Retorna o tipo do serviço para exibição
   const getServiceType = (service: ServiceWithDetails) => {
     if (service.service?.length > 0 && service.products_sold?.length > 0) {
       return 'Serviço e Produto';
@@ -243,25 +247,27 @@ export const History: React.FC = () => {
               <MenuItem value="Serviço e Produto">Serviço e Produto</MenuItem>
             </Select>
           </FormControl>
-          <FormControl sx={{ width: { xs: '100%', sm: '150px' } }}>
-            <InputLabel id="professional-label">Profissional</InputLabel>
-            <Select
-              labelId="professional-label"
-              value={professionalId || ''}
-              onChange={handleProfessionalChange}
-              label="Profissional"
-            >
-              <MenuItem value="">Todos</MenuItem>
-              {professionals.map((professional) => (
-                <MenuItem
-                  key={professional.user_id}
-                  value={professional.user_id}
-                >
-                  {professional.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          {userRole === 'manager' || userRole === 'admin' ? (
+            <FormControl sx={{ width: { xs: '100%', sm: '150px' } }}>
+              <InputLabel id="professional-label">Profissional</InputLabel>
+              <Select
+                labelId="professional-label"
+                value={professionalId || ''}
+                onChange={handleProfessionalChange}
+                label="Profissional"
+              >
+                <MenuItem value="">Todos</MenuItem>
+                {professionals.map((professional) => (
+                  <MenuItem
+                    key={professional.user_id}
+                    value={professional.user_id}
+                  >
+                    {professional.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ) : null}
           <Button
             onClick={handleClearFilters}
             sx={{ width: { xs: '100%', sm: '200px' } }}
