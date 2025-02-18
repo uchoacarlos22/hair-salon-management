@@ -40,8 +40,25 @@ export const performedServicesService = {
     const query = supabase
       .from('services_performed_table')
       .select(`*, users_table ( name )`)
-      .eq('user_id', userId)
       .order('created_at', { ascending: false });
+
+    // Fetch the user's role
+    const { data: userProfile, error: profileError } = await supabase
+      .from('users_table')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+
+    if (profileError) {
+      throw new Error('Erro ao buscar perfil do usuário: ' + profileError.message);
+    }
+
+    console.log('User role:', userProfile?.role);
+
+    // Conditionally apply the user_id filter based on the user's role
+    if (userProfile?.role !== 'admin' && userProfile?.role !== 'manager') {
+      query.eq('user_id', userId);
+    }
 
     if (startDate && endDate) {
       const endOfDay = new Date(endDate);
@@ -59,31 +76,23 @@ export const performedServicesService = {
       throw new Error('Erro ao buscar serviços realizados: ' + error.message);
     }
 
+    console.log('Number of services returned:', data?.length);
+
     return data as PerformedService[];
   },
 
   // Método para buscar serviços de um profissional específico
   async fetchProfessionalServices(professionalId: string): Promise<PerformedService[]> {
-    const query = supabase
+    const { data, error } = await supabase
       .from('services_performed_table')
       .select(`*, users_table ( name )`)
       .eq('user_id', professionalId)
       .order('created_at', { ascending: false });
 
-    const { data, error } = await query;
-
     if (error) {
       throw new Error('Erro ao buscar serviços do profissional: ' + error.message);
     }
 
-    const performedServices: PerformedService[] = data ? data.map(performedService => {
-      let serviceType = '';
-      if (performedService.products_sold && performedService.products_sold.length > 0) {
-        serviceType = 'Produto';
-      }
-      return { ...performedService, service_type: serviceType };
-    }) : [];
-
-    return performedServices;
+    return data as PerformedService[];
   }
 };
