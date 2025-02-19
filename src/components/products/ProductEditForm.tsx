@@ -7,9 +7,12 @@ import {
   DialogActions,
   Button,
   Typography,
+  Alert,
+  Grid
 } from '@mui/material';
 import { Product } from '../../types/products';
 import { updateProduct } from '../../services/productsService';
+import { Dispatch, SetStateAction } from 'react';
 
 interface ProductEditFormProps {
   open: boolean;
@@ -26,6 +29,7 @@ const ProductEditForm: React.FC<ProductEditFormProps> = ({ open, handleClose, pr
   const [quantity, setQuantity] = useState('');
   const [min_quantity, setMinQuantity] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (product) {
@@ -36,6 +40,17 @@ const ProductEditForm: React.FC<ProductEditFormProps> = ({ open, handleClose, pr
       setMinQuantity(String(product.min_quantity));
     }
   }, [product]);
+
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        setSuccess(null);
+        handleClose();
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [success, handleClose]);
 
   const validateForm = () => {
     if (!name || !value || !quantity || !min_quantity) {
@@ -88,7 +103,7 @@ const ProductEditForm: React.FC<ProductEditFormProps> = ({ open, handleClose, pr
     try {
       await updateProduct(product.product_id, updatedProduct);
       setProducts(products.map((p) => (p.product_id === product.product_id ? updatedProduct : p)));
-      handleClose();
+      setSuccess('Product updated successfully!');
     } catch (err) {
       console.error('Error updating product:', err);
       setError('Failed to update product');
@@ -99,61 +114,78 @@ const ProductEditForm: React.FC<ProductEditFormProps> = ({ open, handleClose, pr
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>Edit Product</DialogTitle>
       <DialogContent>
-        {error && (
-          <Typography variant="body2" color="error" style={{ marginBottom: '10px' }}>
+       {error && (
+          <Alert severity="error" style={{ marginBottom: '10px' }}>
             {error}
-          </Typography>
+          </Alert>
         )}
-        <TextField
-          autoFocus
-          margin="dense"
-          label="Name"
-          type="text"
-          fullWidth
-          variant="outlined"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <TextField
-          margin="dense"
-          label="Description"
-          type="text"
-          fullWidth
-          variant="outlined"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <TextField
-          margin="dense"
-          label="Price"
-          type="number"
-          fullWidth
-          variant="outlined"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          required
-        />
-        <TextField
-          margin="dense"
-          label="Quantity"
-          type="number"
-          fullWidth
-          variant="outlined"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          required
-        />
-         <TextField
-          margin="dense"
-          label="Min Quantity"
-          type="number"
-          fullWidth
-          variant="outlined"
-          value={min_quantity}
-          onChange={(e) => setMinQuantity(e.target.value)}
-          required
-        />
+        {success && (
+          <Alert severity="success" style={{ marginBottom: '10px' }}>
+            {success}
+          </Alert>
+        )}
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Name"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              margin="dense"
+              label="Description"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              margin="dense"
+              label="Price"
+              type="number"
+              fullWidth
+              variant="outlined"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              required
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              margin="dense"
+              label="Quantity"
+              type="number"
+              fullWidth
+              variant="outlined"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              required
+            />
+          </Grid>
+           <Grid item xs={12}>
+            <TextField
+              margin="dense"
+              label="Min Quantity"
+              type="number"
+              fullWidth
+              variant="outlined"
+              value={min_quantity}
+              onChange={(e) => setMinQuantity(e.target.value)}
+              required
+            />
+          </Grid>
+        </Grid>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>

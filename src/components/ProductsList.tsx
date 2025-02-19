@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Paper,
   Table,
@@ -10,6 +10,7 @@ import {
   IconButton,
   Typography,
   TablePagination,
+  Alert,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -27,6 +28,17 @@ interface ProductsListProps {
 const ProductsList: React.FC<ProductsListProps> = ({ products, setProducts, setSelectedProduct, handleOpen }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [alert, setAlert] = useState<{ severity: 'success' | 'error'; message: string } | null>(null);
+
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -37,14 +49,20 @@ const ProductsList: React.FC<ProductsListProps> = ({ products, setProducts, setS
     setPage(0);
   };
 
-
   const handleDelete = async (productId: string) => {
     try {
       await deleteProduct(productId);
-      setProducts(products.filter((product) => product.product_id !== productId));
+      const updatedProducts = products.filter((product) => product.product_id !== productId);
+      setProducts(updatedProducts);
+      setAlert({ severity: 'success', message: 'Product deleted successfully!' });
+
+      // Adjust page if needed
+      if (updatedProducts.length % rowsPerPage === 0 && page > 0) {
+        setPage(page - 1);
+      }
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Failed to delete product.');
+      setAlert({ severity: 'error', message: 'Failed to delete product.' });
     }
   };
 
@@ -58,6 +76,11 @@ const ProductsList: React.FC<ProductsListProps> = ({ products, setProducts, setS
       <Typography variant="h6" gutterBottom>
         Product List
       </Typography>
+      {alert && (
+        <Alert severity={alert.severity} onClose={() => setAlert(null)} style={{ marginBottom: '10px' }}>
+          {alert.message}
+        </Alert>
+      )}
       <TableContainer>
         <Table>
           <TableHead>

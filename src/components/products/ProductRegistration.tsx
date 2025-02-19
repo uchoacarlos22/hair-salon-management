@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TextField,
   Button,
   Grid,
   Typography,
   Paper,
+  Alert,
 } from '@mui/material';
 import { Product } from '../../types/products';
 
@@ -20,6 +21,17 @@ const ProductRegistration: React.FC<ProductRegistrationProps> = ({ onProductAdd 
   const [nameError, setNameError] = useState('');
   const [valueError, setValueError] = useState('');
   const [quantityError, setQuantityError] = useState('');
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -59,6 +71,7 @@ const ProductRegistration: React.FC<ProductRegistrationProps> = ({ onProductAdd 
     setDescription('');
     setValue('');
     setQuantity('');
+    setSuccessMessage('Product added successfully!');
   };
 
   return (
@@ -66,6 +79,11 @@ const ProductRegistration: React.FC<ProductRegistrationProps> = ({ onProductAdd 
       <Typography variant="h6" gutterBottom>
         Register Product
       </Typography>
+      {successMessage && (
+        <Alert severity="success" style={{ marginBottom: '10px' }}>
+          {successMessage}
+        </Alert>
+      )}
       <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
