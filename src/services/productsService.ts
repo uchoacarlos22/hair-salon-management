@@ -41,14 +41,14 @@ import { Product } from '../types/products';
 
     // Função para atualizar um produto existente
     export async function updateProduct(
-      id: string,
+      product_id: string,
       product: Partial<Product>
     ): Promise<Product> {
       try {
         const { data, error } = await supabase
           .from('products_table')
           .update(product)
-          .eq('id', id)
+          .eq('product_id', product_id)
           .select()
           .single();
 
@@ -64,12 +64,12 @@ import { Product } from '../types/products';
     }
 
     // Função para deletar um produto
-    export async function deleteProduct(id: string): Promise<void> {
+    export async function deleteProduct(product_id: string): Promise<void> {
       try {
         const { error } = await supabase
           .from('products_table')
           .delete()
-          .eq('id', id);
+          .eq('product_id', product_id);
 
         if (error) {
           console.error('Erro ao deletar produto:', error);
@@ -80,6 +80,8 @@ import { Product } from '../types/products';
         throw error;
       }
     }
+
+export const getProducts = listProducts;
 
 export const productsService = {
   async fetchProducts(): Promise<Product[]> {

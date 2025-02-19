@@ -23,6 +23,7 @@ import {
 import LogoutButton from '../components/LogoutButton';
 import ProfessionalsManagement from '../components/ProfessionalsManagement';
 import History from '../components/History';
+import ProductsDashboard from '../components/ProductsDashboard';
 import { useDrawerToggle } from '../hooks/useDrawerToggle';
 
 const drawerWidth = 240;
@@ -77,6 +78,18 @@ const AdminDashboard = () => {
           </ListItemButton>
         </ListItem>
         {/* Outras opções de menu podem ser adicionadas aqui */}
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/admin-dashboard/products"
+            onClick={() => isMobile && handleDrawerToggle()}
+          >
+            <ListItemIcon>
+              <PlaylistAddCheckIcon />
+            </ListItemIcon>
+            <ListItemText primary="Produtos" />
+          </ListItemButton>
+        </ListItem>
         <LogoutButton />
       </List>
     </Box>
@@ -160,6 +173,7 @@ const AdminDashboard = () => {
             element={<ProfessionalsManagement />}
           />
           <Route path="/history" element={<History userRole="admin" />} />
+          <Route path="/products" element={<ProductsDashboard />} />
         </Routes>
       </Box>
     </Box>

@@ -5,4 +5,8 @@ export interface Product {
   value: number;
   quantity: number;
   created_at?: string;
-} 
+  min_quantity: number;
+  image?: string;
+}
+
+export type ProductWithoutId = Omit<Product, 'product_id'>;
